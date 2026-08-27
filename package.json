@@ -16,15 +16,15 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.0.18",
-    "framer-motion": "^10.16.5",
+    "framer-motion": "^13.1.1",
     "next": "^16.1.6",
     "next-themes": "^0.4.6",
-    "react": "^18",
-    "react-dom": "^18",
+    "react": "^19",
+    "react-dom": "^19",
     "react-type-animation": "^3.2.0",
     "resend": "^2.0.0",
     "typescript": "^5.3.2",
-    "typewriter-effect": "^2.21.0"
+    "typewriter-effect": "^2.22.0"
   },
   "devDependencies": {
     "@opennextjs/cloudflare": "^1.0.0",
