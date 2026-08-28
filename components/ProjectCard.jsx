@@ -1,54 +1,40 @@
 import React from "react";
-import { CodeBracketIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
-const ProjectCard = ({ imgUrl, title, description, gitUrl, bgPosition, bgSize }) => {
+const ProjectCard = ({ imgUrl, title, description, gitUrl, bgPosition, bgSize, number = 1, style }) => {
+  const { bg, text, sub } = style;
+
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 transition hover:-translate-y-1 hover:border-white/20">
-      <div className="pointer-events-none absolute -inset-20 opacity-0 transition duration-300 group-hover:opacity-100">
-        <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-500/20 blur-3xl" />
+    <div className={`sticker relative flex flex-col overflow-hidden rounded-2xl ${bg} p-5`}>
+      <span className={`font-hand text-sm font-bold uppercase tracking-wide ${sub}`}>
+        Project 0{number}
+      </span>
+
+      <div className="sticker-sm relative mt-4 h-40 -rotate-1 overflow-hidden rounded-xl bg-white p-1.5">
+        <div
+          className="h-full w-full rounded-md bg-no-repeat"
+          style={{
+            backgroundImage: `url(${imgUrl})`,
+            backgroundSize: bgSize || "cover",
+            backgroundPosition: bgPosition || "center",
+          }}
+          role="img"
+          aria-label={`${title} preview`}
+        />
+        <span className="washi-tape -top-2 left-1/2 -translate-x-1/2 rotate-2" />
       </div>
 
-      <div
-        className="relative h-52 bg-no-repeat"
-        style={{
-          backgroundImage: `url(${imgUrl})`,
-          backgroundSize: bgSize || "cover",
-          backgroundPosition: bgPosition || "center"
-        }}
-        aria-label={`${title} preview`}
+      <h3 className={`mt-5 text-lg font-extrabold ${text}`}>{title}</h3>
+      <p className={`mt-2 flex-1 text-sm leading-relaxed ${sub}`}>{description}</p>
+
+      <Link
+        href={gitUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`mt-4 inline-flex w-fit items-center gap-1 text-sm font-bold underline decoration-2 underline-offset-4 transition active:scale-[0.97] ${text}`}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/0" />
-
-        <div className="absolute inset-0 hidden items-center justify-center md:flex">
-          <Link
-            href={gitUrl}
-            className="relative inline-flex items-center justify-center rounded-full border border-white/20 bg-black/40 p-3 opacity-0 backdrop-blur transition group-hover:opacity-100 hover:bg-black/55"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`Open ${title} on GitHub`}
-          >
-            <CodeBracketIcon className="h-6 w-6 text-white" />
-          </Link>
-        </div>
-      </div>
-
-      <div className="relative p-5 text-white">
-        <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
-        <p className="mt-2 text-sm leading-relaxed text-slate-300">{description}</p>
-
-        <div className="mt-4 md:hidden">
-          <Link
-            href={gitUrl}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <CodeBracketIcon className="h-5 w-5" />
-            GitHub
-          </Link>
-        </div>
-      </div>
+        View Project →
+      </Link>
     </div>
   );
 };

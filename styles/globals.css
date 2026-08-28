@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 0, 0, 0;
-  --background-end-rgb: 0, 0, 0;
+  --paper-cream: #F5F1E8;
+  --paper-desk: #E7E4DC;
+  --paper-ink: #141414;
 }
 
 html {
@@ -13,202 +13,101 @@ html {
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: radial-gradient(1200px 600px at 15% 10%, rgba(56, 189, 248, 0.12), transparent 60%),
-    radial-gradient(900px 600px at 85% 20%, rgba(99, 102, 241, 0.10), transparent 55%),
-    radial-gradient(900px 700px at 50% 90%, rgba(16, 185, 129, 0.08), transparent 55%),
-    linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+  background: var(--paper-desk);
+  color: var(--paper-ink);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Light theme */
-.light body {
-  --foreground-rgb: 2, 6, 23;
-  --background-start-rgb: 248, 250, 252;
-  --background-end-rgb: 255, 255, 255;
-  background: radial-gradient(1200px 600px at 15% 10%, rgba(56, 189, 248, 0.18), transparent 60%),
-    radial-gradient(900px 600px at 85% 20%, rgba(99, 102, 241, 0.14), transparent 55%),
-    radial-gradient(900px 700px at 50% 90%, rgba(16, 185, 129, 0.10), transparent 55%),
-    linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
-}
-
 ::selection {
-  background: rgba(56, 189, 248, 0.35);
+  background: rgba(255, 198, 61, 0.55);
 }
 
-/* Premium background grid */
-.bg-grid {
-  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, black 60%, transparent 100%);
+/* The "paper" the whole site sits on: cream + faint graph-paper grid */
+.paper-grid {
+  background-color: var(--paper-cream);
+  background-image:
+    linear-gradient(to right, rgba(20, 20, 20, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 20, 20, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 
-.light .bg-grid {
-  background-image: linear-gradient(to right, rgba(2, 6, 23, 0.10) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(2, 6, 23, 0.10) 1px, transparent 1px);
+/* Hard-offset "cut paper / sticker" shadow used on buttons, tags, cards, polaroids */
+.sticker {
+  border: 2px solid var(--paper-ink);
+  box-shadow: 4px 4px 0 var(--paper-ink);
 }
 
-/* Glass surface primitives (re-usable) */
-.surface {
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  backdrop-filter: blur(16px);
+.sticker-sm {
+  border: 2px solid var(--paper-ink);
+  box-shadow: 3px 3px 0 var(--paper-ink);
 }
 
-.light .surface {
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(2, 6, 23, 0.12);
+.sticker-press {
+  transition: transform 100ms ease, box-shadow 100ms ease;
 }
 
-.surface-soft {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+.sticker-press:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--paper-ink);
 }
 
-.light .surface-soft {
-  background: rgba(255, 255, 255, 0.45);
-  border: 1px solid rgba(2, 6, 23, 0.12);
+.sticker-sm.sticker-press:active {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 1.5px 1.5px 0 var(--paper-ink);
 }
 
-/* Light-theme utility overrides
-   Purpose: many components use explicit dark-mode Tailwind utilities (e.g. text-white, bg-black/30, bg-white/5)
-   which look poor on a light background. These rules map common utilities to readable light-theme equivalents
-   without refactoring every component. Adjust values here if you want stronger/weaker contrast. */
-
-.light .text-white {
-  color: rgb(var(--foreground-rgb)) !important;
+/* Small squiggle underline used under hand-written labels */
+.squiggle-underline {
+  position: relative;
+  display: inline-block;
 }
 
-.light .text-slate-200,
-.light .text-slate-300 {
-  color: rgb(var(--foreground-rgb)) !important;
+.squiggle-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 6px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='6' viewBox='0 0 40 6'%3E%3Cpath d='M0 3 Q5 0 10 3 T20 3 T30 3 T40 3' fill='none' stroke='%23141414' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: 40px 6px;
 }
 
-.light .bg-black\/30 {
-  background-color: rgba(255, 255, 255, 0.95) !important;
+/* Washi-tape corner accent for polaroids/photos */
+.washi-tape {
+  position: absolute;
+  width: 56px;
+  height: 22px;
+  background: rgba(255, 198, 61, 0.55);
+  border: 1px solid rgba(20, 20, 20, 0.15);
 }
 
-.light .bg-black\/25 {
-  background-color: rgba(255, 255, 255, 0.92) !important;
-}
-
-.light .bg-white\/5 {
-  /* Subtle overlay on light theme for buttons/controls */
-  background-color: rgba(2, 6, 23, 0.03) !important;
-}
-
-.light .bg-white\/10 {
-  background-color: rgba(2, 6, 23, 0.06) !important;
-}
-
-/* Stronger borders for light theme so card outlines remain visible */
-.light .border-white\/10 {
-  border-color: rgba(2, 6, 23, 0.12) !important;
-}
-
-.light .border-white\/15 {
-  border-color: rgba(2, 6, 23, 0.14) !important;
-}
-
-/* Add a subtle lift/shadow to rounded card elements to separate them from the light background */
-.light .rounded-3xl.border,
-.light .rounded-2xl.border,
-.light .rounded-xl.border {
-  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.04), 0 1px 0 rgba(2, 6, 23, 0.06);
-}
-
-.light .hover\:bg-white\/10:hover {
-  background-color: rgba(2, 6, 23, 0.06) !important;
+.scrolled-header {
+  background-color: rgba(245, 241, 232, 0.85);
+  backdrop-filter: blur(10px);
 }
 
 /* Button utilities (reusable) */
 .btn {
-  @apply inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold transition;
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition active:scale-[0.97];
 }
 
-/* Social button: fully black background with white text for strong contrast */
-.social-btn {
-  border: 1px solid rgba(0,0,0,0.12);
-  background-color: #000000;
-  color: #ffffff !important;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  transition: background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
-}
-
-.social-btn:hover {
-  background-color: #111111;
-  box-shadow: 0 10px 30px rgba(2,6,23,0.16);
-  transform: translateY(-1px);
-}
-
-.social-btn:focus-visible {
-  outline: 2px solid rgba(56,189,248,0.18);
-  outline-offset: 3px;
-}
-
-/* For light theme keep buttons black (strong contrast on light) */
-.light .social-btn {
-  background-color: #000000 !important;
-  color: #ffffff !important;
-  border-color: rgba(0,0,0,0.12) !important;
-}
-
-.light .social-btn:hover {
-  background-color: #111111 !important;
-}
-
-/* Strong dark/contrast button (good for primary CTAs in both themes) */
 .btn-contrast {
-  @apply bg-black;
-  color: #ffffff !important; /* enforce contrasting text */
-  border: 1px solid transparent;
+  @apply btn sticker sticker-press bg-paper-ink text-paper-cream;
 }
 .btn-contrast:hover {
-  background-color: rgba(0,0,0,0.8);
-  color: #ffffff !important;
+  background-color: #2a2a2a;
 }
 
-/* Primary (light background) button, used in dark theme */
-.btn-primary {
-  @apply bg-white;
-  color: #000000 !important; /* enforce contrasting text */
-  border: 1px solid transparent;
-}
-.btn-primary:hover {
-  background-color: rgba(203,213,225,1); /* slate-100 */
-  color: #000000 !important;
-}
-
-/* Ghost / secondary button that respects the theme */
 .btn-ghost {
-  /* Explicit CSS used instead of @apply classes with slashes to avoid build issues */
-  border: 1px solid rgba(255,255,255,0.08);
-  background-color: rgba(255,255,255,0.05);
-  color: #ffffff !important;
+  @apply btn sticker sticker-press bg-paper-cream text-paper-ink;
 }
 .btn-ghost:hover {
-  background-color: rgba(255,255,255,0.10);
-  color: #ffffff !important;
-}
-
-.light .btn-ghost {
-  /* make ghost buttons readable on light background */
-  background-color: rgba(2,6,23,0.03) !important;
-  color: rgb(var(--foreground-rgb)) !important;
-  border-color: rgba(2,6,23,0.06) !important;
-}
-
-.scrolled-header {
-  background-color: rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(22px);
-} 
-
-.light .scrolled-header {
-  background-color: rgba(255, 255, 255, 0.65);
+  background-color: #ffffff;
 }
 
 /* Reduced motion support */
@@ -226,5 +125,3 @@ body {
     scroll-behavior: auto !important;
   }
 }
-
-/* Keep scrollbars visible (better UX/accessibility). */

@@ -6,93 +6,67 @@ import Link from "next/link";
 import Image from "next/image";
 import GmailIcon from "../public/gmail-icon.svg";
 
+const SOCIAL_LINKS = [
+  { href: "https://github.com/Lisosimida", icon: GithubIcon, label: "GitHub", color: "bg-white" },
+  { href: "https://www.linkedin.com/in/guan-li-soh-b019a7233/", icon: LinkedinIcon, label: "LinkedIn", color: "bg-accent-blue" },
+  { href: "https://www.instagram.com/lisohlisoh/", icon: InstagramIcon, label: "Instagram", color: "bg-accent-pink" },
+  { href: "mailto:lisoh03@gmail.com", icon: GmailIcon, label: "Email", color: "bg-accent-yellow" },
+];
+
 const EmailSection = () => {
   return (
     <section id="contact" className="py-20">
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-8 sm:p-10">
-        <div className="pointer-events-none absolute inset-0 opacity-80">
-          <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-sky-500/15 blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-indigo-500/15 blur-3xl" />
+      <div className="mb-10 flex items-center gap-3">
+        <span className="h-px flex-1 border-t-2 border-dashed border-paper-ink/25" />
+        <span className="font-hand text-lg text-paper-ink/60">let&apos;s talk! 🙂</span>
+      </div>
+
+      <div className="grid gap-8 md:grid-cols-2 md:items-center">
+        <div>
+          <span className="sticker-sm inline-flex items-center gap-2 rounded-full bg-accent-mint px-4 py-1.5 text-xs font-bold text-paper-ink">
+            <span className="h-2 w-2 rounded-full bg-paper-ink" />
+            Let&apos;s build something useful
+          </span>
+
+          <h2 className="mt-5 font-heading text-4xl uppercase tracking-tight text-paper-ink sm:text-5xl">
+            Let&apos;s Connect
+          </h2>
+
+          <p className="mt-3 max-w-xl text-base leading-relaxed text-paper-ink/70 sm:text-lg">
+            I&apos;m currently open to AI Engineer opportunities. If you&apos;re hiring, collaborating, or want to chat about LLM/RAG/NLP
+            work, I&apos;ll reply as soon as I can.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="mailto:lisoh03@gmail.com" className="btn-contrast">
+              Email me
+            </Link>
+            <Link href="#projects" className="btn-ghost">
+              See Projects
+            </Link>
+          </div>
         </div>
 
-        <div className="relative grid gap-8 md:grid-cols-2 md:items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm text-slate-200">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              Let&apos;s build something useful
-            </div>
+        <div className="sticker rounded-2xl bg-white p-6">
+          <h3 className="font-hand text-2xl text-paper-ink">Social</h3>
+          <p className="mt-2 text-sm text-paper-ink/60">
+            Quick links to my profiles.
+          </p>
 
-            <h2 className="mt-5 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-              Let&apos;s Connect
-            </h2>
-
-            <p className="mt-3 max-w-xl text-base leading-relaxed text-slate-200 sm:text-lg">
-              I&apos;m currently open to AI Engineer opportunities. If you&apos;re hiring, collaborating, or want to chat about LLM/RAG/NLP
-              work, I&apos;ll reply as soon as I can.
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-5 flex flex-wrap gap-3">
+            {SOCIAL_LINKS.map((social) => (
               <Link
-                href="mailto:lisoh03@gmail.com"
-                className="btn btn-contrast"
-              >
-                Email me
-              </Link>
-              <Link
-                href="#projects"
-                className="btn btn-ghost"
-              >
-                See Projects
-              </Link>
-            </div> 
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-black/30 p-6">
-            <h3 className="text-lg font-semibold text-white">Social</h3>
-            <p className="mt-2 text-sm text-slate-300">
-              Quick links to my profiles.
-            </p>
-
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link
-                href="https://github.com/Lisosimida"
+                key={social.label}
+                href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 rounded-xl social-btn px-4 py-3"
-                aria-label="Open GitHub"
+                className={`sticker-sm sticker-press inline-flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-paper-ink transition ${social.color}`}
+                aria-label={`Open ${social.label}`}
               >
-                <Image src={GithubIcon} alt="GitHub" width={22} height={22} />
-                GitHub
+                <Image src={social.icon} alt={social.label} width={20} height={20} className="invert" />
+                {social.label}
               </Link>
-              <Link
-                href="https://www.linkedin.com/in/guan-li-soh-b019a7233/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 rounded-xl social-btn px-4 py-3"
-                aria-label="Open LinkedIn"
-              >
-                <Image src={LinkedinIcon} alt="LinkedIn" width={22} height={22} />
-                LinkedIn
-              </Link>
-              <Link
-                href="https://www.instagram.com/lisohlisoh/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 rounded-xl social-btn px-4 py-3"
-                aria-label="Open Instagram"
-              >
-                <Image src={InstagramIcon} alt="Instagram" width={22} height={22} />
-                Instagram
-              </Link>
-              <Link
-                href="mailto:lisoh03@gmail.com"
-                className="inline-flex items-center gap-3 rounded-xl social-btn px-4 py-3"
-                aria-label="Send email"
-              >
-                <Image src={GmailIcon} alt="Email" width={22} height={22} />
-                Email
-              </Link> 
-            </div>
+            ))}
           </div>
         </div>
       </div>

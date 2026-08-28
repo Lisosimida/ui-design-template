@@ -3,13 +3,13 @@ import { useTransition, useState } from "react";
 import TabButton from "./TabButton";
 import Image from "next/image";
 
-//1d
 const TAB_DATA = [
     {
         title: "AI / ML",
         id: "ai-ml",
+        color: "bg-accent-mint",
         content: (
-          <ul className="list-disc pl-4 text-slate-200">
+          <ul className="list-disc pl-4 text-paper-ink/70">
                 <li>NLP, NER, LLMs, RAG</li>
                 <li>CNNs, supervised learning, model evaluation</li>
                 <li>Feature engineering and experimentation</li>
@@ -19,8 +19,9 @@ const TAB_DATA = [
     {
         title: "Engineering",
         id: "engineering",
+        color: "bg-accent-blue",
         content: (
-          <ul className="list-disc pl-4 text-slate-200">
+          <ul className="list-disc pl-4 text-paper-ink/70">
                 <li>Python, Java, SQL, R</li>
                 <li>Streamlit, LangChain, Ollama</li>
                 <li>AWS, Microsoft Azure, Git</li>
@@ -30,8 +31,9 @@ const TAB_DATA = [
     {
         title: "Experience",
         id: "experience",
+        color: "bg-accent-pink",
         content: (
-          <ul className="list-disc pl-4 text-slate-200">
+          <ul className="list-disc pl-4 text-paper-ink/70">
             <li>AI Engineer Intern @ CelcomDigi (LLM chatbots, RAG, PDF Q&amp;A)</li>
             <li>Data Analyst Engineer @ Tencent Games (data workflows, case analysis)</li>
           </ul>
@@ -40,119 +42,88 @@ const TAB_DATA = [
     {
         title: "Education",
         id: "education",
+        color: "bg-accent-yellow",
         content: (
-          <ul className="list-disc pl-4 text-slate-200">
+          <ul className="list-disc pl-4 text-paper-ink/70">
                 <li>APU — BSc (Hons) Computer Science (Data Analytics), First Class</li>
                 <li>Vice Chancellor’s List (2022/2023)</li>
           </ul>
         ),
     }
 ];
-//1
+
 const AboutMe = () => {
-    //1b
     const[tab, setTab] = useState("ai-ml");
     const[isPending, startTransition] = useTransition();
-
-    const TAB_RING = {
-        "ai-ml": "ring-1 ring-sky-200/30",
-        "engineering": "ring-1 ring-emerald-200/30",
-        "experience": "ring-1 ring-violet-200/30",
-        "education": "ring-1 ring-amber-200/30",
-    };
 
     const handleTabChange = (id) => {
         startTransition(() => {
             setTab(id);
         });
     };
-    //1a
+
     return(
         <section className="py-20" id="aboutMe">
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-8 sm:p-10">
-                <div className="pointer-events-none absolute inset-0 opacity-80">
-                    <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-sky-500/15 blur-3xl" />
-                    <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-indigo-500/15 blur-3xl" />
-                </div>
+            <div className="mb-10 flex items-center gap-3">
+                <span className="h-px flex-1 border-t-2 border-dashed border-paper-ink/25" />
+                <span className="font-hand text-lg text-paper-ink/60">about me!</span>
+            </div>
 
-                <div className="relative grid grid-cols-1 items-center gap-10 md:grid-cols-2">
-                    <div>
-                        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-black/30">
-                            <Image
-                                src="/AboutMe.png"
-                                alt="Li Soh"
-                                width={400}
-                                height={400}
-                                className="h-full w-full object-cover"
-                            />
-                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-black/0 to-black/0" />
+            <div className="grid grid-cols-1 items-start gap-16 md:grid-cols-2">
+                <div className="relative mx-auto h-72 w-64 sm:h-80 sm:w-72">
+                    <div className="sticker absolute left-0 top-0 -rotate-3 bg-white p-3 sm:w-64">
+                        <div className="relative h-56 w-full overflow-hidden sm:h-64 sm:w-56">
+                            <Image src="/AboutMe.png" alt="Li Soh" fill sizes="256px" className="object-cover" />
                         </div>
+                        <p className="mt-2 text-center font-hand text-sm text-paper-ink/70">me, thinking about RAG pipelines</p>
+                        <span className="washi-tape -top-3 left-1/2 -translate-x-1/2 -rotate-2" />
                     </div>
 
-                    <div className="text-left flex flex-col">
-                        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm text-slate-200">
-                            <span className="h-2 w-2 rounded-full bg-sky-400" />
-                            AI Engineer profile
+                    <div className="sticker absolute bottom-0 right-0 w-40 rotate-6 bg-white p-2 sm:w-48">
+                        <div className="relative h-32 w-full overflow-hidden sm:h-36">
+                            <Image src="/Hero-Section.png" alt="Li Soh" fill sizes="192px" className="object-cover" />
                         </div>
+                        <p className="mt-2 text-center font-hand text-xs text-paper-ink/70">my setup</p>
+                        <span className="washi-tape -top-3 left-1/2 -translate-x-1/2 rotate-3" />
+                    </div>
+                </div>
 
-                        <h2 className="mt-5 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">About Me</h2>
+                <div>
+                    <div className="sticker-sm inline-block rounded-xl bg-paper-cream px-4 py-1.5">
+                        <span className="font-hand text-lg text-paper-ink">what's up</span>
+                    </div>
 
-                        <p className="mt-3 text-base leading-relaxed text-slate-200 sm:text-lg">
-                            I&apos;m an early-career engineer focused on building practical AI systems. My experience includes NLP pipelines,
-                            named entity recognition, resume parsing and job matching, and LLM applications such as retrieval-augmented
-                            generation (RAG). I enjoy designing end-to-end solutions—from data processing and modeling to evaluation and
-                            deployment.
-                        </p>
+                    <p className="mt-5 font-hand text-xl leading-relaxed text-paper-ink/80 sm:text-2xl">
+                        I&apos;m an early-career engineer who gets a little too excited about building practical AI systems. ✨
+                        I care about the small details, the edge cases everyone forgets, and shipping work that genuinely
+                        makes someone&apos;s day easier.
+                    </p>
 
-                        <p className="mt-4 text-base leading-relaxed text-slate-200 sm:text-lg">
-                            I&apos;ve shipped real-world chatbot work during my internship at CelcomDigi (LLM + RAG, internal assistance, PDF
-                            querying) and I&apos;m currently working as a Data Analyst Engineer at Tencent Games where I execute data workflows
-                            and support policy-driven case analysis.
-                        </p>
+                    <p className="mt-4 text-sm leading-relaxed text-paper-ink/70">
+                        I&apos;ve shipped real-world chatbot work during my internship at CelcomDigi (LLM + RAG, internal assistance, PDF
+                        querying) and I&apos;m currently working as a Data Analyst Engineer at Tencent Games where I execute data workflows
+                        and support policy-driven case analysis.
+                    </p>
 
-                        <div className="mt-8 flex flex-row flex-wrap gap-2">
-                            <TabButton 
-                            selectTab={() => handleTabChange("ai-ml")}
-                            active= {tab === "ai-ml"}
+                    <div className="mt-8 flex flex-row flex-wrap gap-2">
+                        {TAB_DATA.map((t) => (
+                            <TabButton
+                                key={t.id}
+                                selectTab={() => handleTabChange(t.id)}
+                                active={tab === t.id}
+                                color={t.color}
                             >
-                                {" "}
-                                AI / ML{" "}
+                                {t.title}
                             </TabButton>
+                        ))}
+                    </div>
 
-                            <TabButton 
-                            selectTab={() => handleTabChange("engineering")}
-                            active= {tab === "engineering"}
-                            >
-                                {" "}
-                                Engineering{" "}
-                            </TabButton>
-
-                            <TabButton 
-                            selectTab={() => handleTabChange("experience")}
-                            active= {tab === "experience"}
-                            >
-                                {" "}
-                                Experience{" "}
-                            </TabButton>
-
-                            <TabButton 
-                            selectTab={() => handleTabChange("education")}
-                            active= {tab === "education"}
-                            >
-                                {" "}
-                                Education{" "}
-                            </TabButton>
-                            
-                        </div>
-
-                        <div className={`mt-6 rounded-2xl border border-white/10 bg-black/30 p-5 text-slate-200 ${TAB_RING[tab]}`}>
-                            {TAB_DATA.find((t) => t.id === tab).content}
-                        </div>
+                    <div className="sticker mt-6 rounded-2xl bg-white p-5">
+                        {TAB_DATA.find((t) => t.id === tab).content}
                     </div>
                 </div>
             </div>
         </section>
-
     );
 };
 export default AboutMe;
