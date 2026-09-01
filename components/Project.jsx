@@ -46,39 +46,44 @@ const projectData = [
     },
 ];
 
+const CARD_STYLES = [
+  { bg: "bg-paper-ink", text: "text-paper-cream", sub: "text-paper-cream/60" },
+  { bg: "bg-accent-yellow", text: "text-paper-ink", sub: "text-paper-ink/70" },
+  { bg: "bg-accent-pink", text: "text-paper-ink", sub: "text-paper-ink/70" },
+  { bg: "bg-accent-mint", text: "text-paper-ink", sub: "text-paper-ink/70" },
+  { bg: "bg-accent-blue", text: "text-paper-ink", sub: "text-paper-ink/70" },
+];
+
 const Project = () => {
   return (
     <section id="projects" className="py-20">
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-8 sm:p-10">
-        <div className="pointer-events-none absolute inset-0 opacity-80">
-          <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-sky-500/15 blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-indigo-500/15 blur-3xl" />
-        </div>
+      <div className="mb-6 flex items-center gap-3">
+        <span className="font-hand text-lg text-paper-ink/60">selected projects!</span>
+        <span className="h-px flex-1 border-t-2 border-dashed border-paper-ink/25" />
+      </div>
 
-        <div className="relative">
-          <div>
-            <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-              Selected Projects
-            </h2>
-            <p className="mt-2 max-w-2xl text-slate-200">
-              AI-focused builds with clear problem framing, evaluation, and end-to-end implementation.
-            </p>
-          </div>
+      <h2 className="font-heading text-4xl uppercase tracking-tight text-paper-ink sm:text-5xl">
+        Featured Work
+      </h2>
 
-          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {projectData.map((project) => (
-              <ProjectCard
-                key={project.id}
-                title={project.title}
-                description={project.description}
-                imgUrl={project.image}
-                gitUrl={project.gitUrl}
-                bgPosition={project.bgPosition}
-                bgSize={project.bgSize}
-              />
-            ))}
-          </div>
-        </div>
+      <p className="mt-3 max-w-2xl text-paper-ink/70">
+        AI-focused builds with clear problem framing, evaluation, and end-to-end implementation.
+      </p>
+
+      <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {projectData.map((project, index) => (
+          <ProjectCard
+            key={project.id}
+            title={project.title}
+            description={project.description}
+            imgUrl={project.image}
+            gitUrl={project.gitUrl}
+            bgPosition={project.bgPosition}
+            bgSize={project.bgSize}
+            number={index + 1}
+            style={CARD_STYLES[index % CARD_STYLES.length]}
+          />
+        ))}
       </div>
     </section>
   );

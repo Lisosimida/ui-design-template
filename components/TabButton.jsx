@@ -1,14 +1,14 @@
 import React from "react";
 
-//1c
-const TabButton = ({ active, selectTab, children }) => {
-  const buttonClass = active
-    ? "text-sky-400 border-b-2 border-sky-400"
-    : "text-slate-400 hover:text-sky-400";
-
+const TabButton = ({ active, selectTab, children, color = "bg-accent-yellow" }) => {
   return (
-    <button onClick={selectTab}>
-      <p className={`mr-5 font-semibold ${buttonClass}`}>{children}</p>
+    <button
+      onClick={selectTab}
+      className={`sticker-sm sticker-press rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide transition active:scale-95 ${
+        active ? `${color} text-paper-ink` : "bg-paper-cream text-paper-ink/50"
+      }`}
+    >
+      {children}
     </button>
   );
 };
