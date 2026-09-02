@@ -1,40 +1,43 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Launchbase
 
-## Getting Started
+A config-driven Next.js (App Router) template for product-launch pages and event-landing pages. One shared component system, swappable content — see it populated two ways at `/demo/product` and `/demo/event`.
 
-First, run the development server:
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) for the showcase landing page, or go straight to a demo:
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+- `/demo/product` — fictional SaaS launch page ("Nimbus")
+- `/demo/event` — fictional conference page ("Converge Summit")
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+## Structure
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+- `app/` — routes (App Router). `app/page.js` is the showcase landing page; `app/demo/*` are the two populated demos; `app/api/contact/route.js` is the contact-form backend.
+- `config/` — all swappable content. `site.js` is the showcase page's own content; `product.js` and `event.js` are the fictional demo content. **Customize a copy of this template by editing these files, not the components.**
+- `components/shared/` — modules used by both verticals (About/value-prop, Gallery, pricing/ticket tiers, contact form, nav/footer building blocks).
+- `components/product/` and `components/event/` — modules specific to each vertical (bento features, pricing, testimonials / countdown hero, speakers, agenda, venue).
+- `styles/globals.css` + `tailwind.config.js` — design tokens. The whole site is a single low-light dark theme (no toggle); each demo sets its own accent color via a `data-accent` attribute rather than a separate palette.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Contact form
 
-## Learn More
+The contact form (`components/shared/ContactForm.jsx`) posts to `app/api/contact/route.js`, which sends mail via [Resend](https://resend.com). Set `RESEND_API_KEY`:
 
-To learn more about Next.js, take a look at the following resources:
+- **Local dev**: add it to `.dev.vars` (used by `initOpenNextCloudflareForDev`, already wired in `next.config.js`) or a `.env.local`.
+- **Cloudflare Workers deploy**: this project deploys via OpenNext/Wrangler, so set it as a Worker secret — `.env.local` is not read at runtime on Workers:
+  ```bash
+  npx wrangler secret put RESEND_API_KEY
+  ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The destination address is `contactEmail` in `config/site.js`. The `from` address in the route defaults to Resend's shared `onboarding@resend.dev` sender — swap it for your own verified sending domain before going live.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Deploying
 
-## Deploy on Vercel
+```bash
+npm run deploy
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Builds with `@opennextjs/cloudflare` and deploys via Wrangler (see `wrangler.jsonc`).
