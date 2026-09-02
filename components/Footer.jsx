@@ -1,14 +1,21 @@
 import React from "react";
+import Logo from "./shared/Logo";
 
-const Footer = () => {
-  return (
-    <footer className="border-t-2 border-dashed border-paper-ink/25">
-      <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-2 px-6 py-8 text-paper-ink/50 sm:flex-row">
-        <span className="font-hand text-lg">Li Soh</span>
-        <p className="text-sm">Copyright © {new Date().getFullYear()} • All rights reserved</p>
+const Footer = ({ brand, note, links = [] }) => (
+  <footer className="border-t border-border/10">
+    <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-6 py-10 text-center sm:flex-row sm:justify-between sm:text-left">
+      <Logo name={brand} />
+      {note && <p className="text-sm text-muted">{note}</p>}
+      <div className="flex items-center gap-4">
+        {links.map((l) => (
+          <a key={l.label} href={l.href} className="text-sm text-muted transition hover:text-fg">
+            {l.label}
+          </a>
+        ))}
+        <span className="text-xs text-muted">© {new Date().getFullYear()} {brand}</span>
       </div>
-    </footer>
-  );
-};
+    </div>
+  </footer>
+);
 
 export default Footer;
