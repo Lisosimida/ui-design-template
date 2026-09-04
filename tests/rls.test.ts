@@ -19,6 +19,7 @@ describe('resumes RLS policies', () => {
   let userBClient: SupabaseClient
   let userAId: string
   let resumeId: string
+  let secondResumeId: string
 
   beforeAll(async () => {
     const suffix = Date.now()
@@ -38,6 +39,18 @@ describe('resumes RLS policies', () => {
 
     if (error) throw error
     resumeId = data.id
+
+    // A second row for user A so the "list" seam (a bare select, not
+    // .eq('id', ...)) has more than one of their own rows to distinguish
+    // from "everything" vs "just this one" — see ticket #6.
+    const { data: second, error: secondError } = await userAClient
+      .from('resumes')
+      .insert({ user_id: userAId, original_filename: 'resume-2.pdf' })
+      .select()
+      .single()
+
+    if (secondError) throw secondError
+    secondResumeId = second.id
   })
 
   it('lets a user select their own resume', async () => {
@@ -55,6 +68,17 @@ describe('resumes RLS policies', () => {
   it("rejects inserting a resume under another user's id", async () => {
     const { error } = await userBClient.from('resumes').insert({ user_id: userAId, original_filename: 'x.pdf' })
     expect(error).not.toBeNull()
+  })
+
+  it("lists only the signed-in user's own resumes, not another user's (ticket #6 list seam)", async () => {
+    const { data, error } = await userAClient.from('resumes').select()
+    expect(error).toBeNull()
+    expect(data).toHaveLength(2)
+    expect(data!.map((r) => r.id).sort()).toEqual([resumeId, secondResumeId].sort())
+
+    const { data: userBData, error: userBError } = await userBClient.from('resumes').select()
+    expect(userBError).toBeNull()
+    expect(userBData).toHaveLength(0)
   })
 
   it("never lets another user delete a resume they don't own", async () => {

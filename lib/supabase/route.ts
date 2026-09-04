@@ -17,3 +17,14 @@ export function createRouteClient(request: NextRequest) {
     },
   })
 }
+
+// Shared by every /api/resumes* route handler that needs to know who's
+// asking — creates the client and resolves the current user in one step, so
+// each handler's own 401 message is the only per-route auth code left.
+export async function getRequestUser(request: NextRequest) {
+  const supabase = createRouteClient(request)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  return { supabase, user }
+}

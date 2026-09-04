@@ -7,10 +7,20 @@ import { getCloudflareContext } from '@opennextjs/cloudflare'
 // promise is simply left to run; errors are the task's own responsibility to
 // handle, since nothing here awaits or reports them.
 export async function runInBackground(task: () => Promise<void>): Promise<void> {
+  // Only context acquisition is expected to fail (outside the Cloudflare
+  // adapter) — task() must run exactly once, so it's called after this
+  // block, never inside the try, or a throw from waitUntil itself would
+  // fall into the catch and run task() a second time.
+  let ctx: { waitUntil: (promise: Promise<unknown>) => void } | undefined
   try {
-    const { ctx } = await getCloudflareContext({ async: true })
-    ctx.waitUntil(task())
+    ;({ ctx } = await getCloudflareContext({ async: true }))
   } catch {
+    // Not running under the Cloudflare adapter (e.g. plain `next build`/Node).
+  }
+
+  if (ctx) {
+    ctx.waitUntil(task())
+  } else {
     void task()
   }
 }

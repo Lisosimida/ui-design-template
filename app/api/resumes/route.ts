@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server'
-import { createRouteClient } from '@/lib/supabase/route'
+import { getRequestUser } from '@/lib/supabase/route'
 import { getGeminiApiKey, getGeminiModel } from '@/lib/gemini/client'
 import { analyzeResume } from '@/lib/resume/analyze'
 import { extractResumeText, InvalidResumeFileError, CorruptResumeFileError } from '@/lib/resume/extract-text'
@@ -8,10 +8,7 @@ import { captureServerEvent } from '@/lib/posthog/server'
 import { runInBackground } from '@/lib/cloudflare/background'
 
 export async function POST(request: NextRequest) {
-  const supabase = createRouteClient(request)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { supabase, user } = await getRequestUser(request)
 
   if (!user) {
     return Response.json({ error: 'You must be signed in to upload a resume.' }, { status: 401 })
