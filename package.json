@@ -20,19 +20,24 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.123.0",
     "@heroicons/react": "^2.0.18",
     "@sentry/nextjs": "^10.73.0",
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.114.0",
     "framer-motion": "^13.1.1",
+    "mammoth": "^1.12.2",
     "next": "^16.1.6",
     "posthog-js": "^1.425.1",
+    "posthog-node": "^5.51.6",
     "react": "^19",
     "react-dom": "^19",
     "react-type-animation": "^3.2.0",
     "resend": "^2.0.0",
     "typescript": "^5.3.2",
-    "typewriter-effect": "^2.22.0"
+    "typewriter-effect": "^2.22.0",
+    "unpdf": "^1.8.1",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@opennextjs/cloudflare": "^1.0.0",

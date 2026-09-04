@@ -1,0 +1,5 @@
+# Prevent core.autocrlf from mangling binary fixtures (this repo has it set
+# to true) — a PDF isn't text, and LF/CRLF normalization would corrupt the
+# exact byte offsets its xref table depends on.
+*.pdf binary
+*.docx binary

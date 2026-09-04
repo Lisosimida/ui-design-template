@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/app/(auth)/actions'
+import ResumeUploadForm from './ResumeUploadForm'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -21,9 +22,7 @@ export default async function DashboardPage() {
         </form>
       </div>
 
-      <div className="card mt-10 p-8 text-muted">
-        Resume upload is coming soon — this is the auth-gated shell the rest of the product builds on.
-      </div>
+      <ResumeUploadForm />
     </main>
   )
 }
