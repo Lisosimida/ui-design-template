@@ -4,18 +4,9 @@ import path from 'node:path'
 import { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-const mockParse = vi.fn()
-
-// The Claude API call is the only thing stubbed here — everything else
-// (auth, file parsing, the RLS-protected insert) runs for real against the
-// test Supabase project, per the spec's "primary seam" for this ticket.
-vi.mock('@anthropic-ai/sdk', () => ({
-  default: class {
-    messages = { parse: mockParse }
-  },
-}))
-
-process.env.ANTHROPIC_API_KEY = 'test-anthropic-key'
+const OLLAMA_BASE_URL = 'http://ollama-test.local:11434'
+process.env.OLLAMA_BASE_URL = OLLAMA_BASE_URL
+process.env.OLLAMA_MODEL = 'test-model'
 
 const { POST } = await import('../app/api/resumes/route')
 
@@ -31,6 +22,23 @@ const FIXTURE_ANALYSIS = {
   education: [{ institution: 'State University', degree: 'BS Computer Science', year: '2016-2020' }],
   feedback: { clarity: 'Clear and well organized.', impact: 'Strong, quantified impact.', gaps: [] },
 }
+
+// Only the Ollama HTTP call is stubbed — everything else (auth, file
+// parsing, the RLS-protected insert) runs for real against the test
+// Supabase project, per the spec's "primary seam" for this ticket. Calls to
+// anything other than OLLAMA_BASE_URL (i.e. Supabase's own fetches) pass
+// through to the real fetch untouched.
+const realFetch = globalThis.fetch
+let ollamaCallCount = 0
+let ollamaHandler: () => Response | Promise<Response> = () =>
+  Response.json({ message: { content: JSON.stringify(FIXTURE_ANALYSIS) } })
+
+vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+  const requestUrl = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+  if (!requestUrl.startsWith(OLLAMA_BASE_URL)) return realFetch(input, init)
+  ollamaCallCount += 1
+  return ollamaHandler()
+})
 
 // Same cookie-jar-via-@supabase/ssr sign-in pattern as proxy.test.ts, so the
 // cookies handed to the route are in exactly the format it expects.
@@ -67,8 +75,8 @@ function readFixture(name: string) {
 
 describe('POST /api/resumes', () => {
   beforeEach(() => {
-    mockParse.mockReset()
-    mockParse.mockResolvedValue({ parsed_output: FIXTURE_ANALYSIS })
+    ollamaCallCount = 0
+    ollamaHandler = () => Response.json({ message: { content: JSON.stringify(FIXTURE_ANALYSIS) } })
   })
 
   it('rejects an unauthenticated request', async () => {
@@ -79,7 +87,7 @@ describe('POST /api/resumes', () => {
     const response = await POST(request)
 
     expect(response.status).toBe(401)
-    expect(mockParse).not.toHaveBeenCalled()
+    expect(ollamaCallCount).toBe(0)
   })
 
   it('parses a real PDF fixture, persists it under the uploading user, and returns the structured result', async () => {
@@ -95,7 +103,7 @@ describe('POST /api/resumes', () => {
     expect(body.parsed_data.skills).toEqual(FIXTURE_ANALYSIS.skills)
     expect(body.parsed_data.experience).toEqual(FIXTURE_ANALYSIS.experience)
     expect(body.feedback).toEqual(FIXTURE_ANALYSIS.feedback)
-    expect(mockParse).toHaveBeenCalledTimes(1)
+    expect(ollamaCallCount).toBe(1)
 
     const { data: rows, error } = await client.from('resumes').select().eq('id', body.id)
     expect(error).toBeNull()
@@ -111,7 +119,7 @@ describe('POST /api/resumes', () => {
     expect(rows![0].feedback).toEqual(FIXTURE_ANALYSIS.feedback)
   })
 
-  it('rejects an unsupported file type with 400 and never calls Claude', async () => {
+  it('rejects an unsupported file type with 400 and never calls Ollama', async () => {
     const { jar } = await signInAndCaptureCookies()
     const file = new File([Buffer.from('just some text')], 'resume.txt', { type: 'text/plain' })
     const request = buildRequest(jar, file)
@@ -121,11 +129,13 @@ describe('POST /api/resumes', () => {
 
     expect(response.status).toBe(400)
     expect(body.error).toMatch(/unsupported file type/i)
-    expect(mockParse).not.toHaveBeenCalled()
+    expect(ollamaCallCount).toBe(0)
   })
 
-  it('returns 502 when the Claude call fails, without saving a row', async () => {
-    mockParse.mockRejectedValueOnce(new Error('upstream failure'))
+  it('returns 502 when Ollama is unreachable, without saving a row', async () => {
+    ollamaHandler = () => {
+      throw new Error('connect ECONNREFUSED')
+    }
     const { jar, client } = await signInAndCaptureCookies()
     const file = new File([readFixture('resume.pdf')], 'resume.pdf', { type: 'application/pdf' })
     const request = buildRequest(jar, file)
@@ -137,20 +147,13 @@ describe('POST /api/resumes', () => {
     expect(rows).toHaveLength(0)
   })
 
-  it('returns 503 when no Claude API key is configured', async () => {
-    const previousKey = process.env.ANTHROPIC_API_KEY
-    delete process.env.ANTHROPIC_API_KEY
+  it('returns 502 when Ollama returns data that fails schema validation', async () => {
+    ollamaHandler = () => Response.json({ message: { content: JSON.stringify({ not: 'valid' }) } })
+    const { jar } = await signInAndCaptureCookies()
+    const file = new File([readFixture('resume.pdf')], 'resume.pdf', { type: 'application/pdf' })
+    const request = buildRequest(jar, file)
 
-    try {
-      const { jar } = await signInAndCaptureCookies()
-      const file = new File([readFixture('resume.pdf')], 'resume.pdf', { type: 'application/pdf' })
-      const request = buildRequest(jar, file)
-
-      const response = await POST(request)
-      expect(response.status).toBe(503)
-      expect(mockParse).not.toHaveBeenCalled()
-    } finally {
-      process.env.ANTHROPIC_API_KEY = previousKey
-    }
+    const response = await POST(request)
+    expect(response.status).toBe(502)
   })
 })

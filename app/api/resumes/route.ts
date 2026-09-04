@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { createRouteClient } from '@/lib/supabase/route'
-import { getAnthropicApiKey } from '@/lib/anthropic/client'
+import { getOllamaConfig } from '@/lib/ollama/client'
 import { analyzeResume } from '@/lib/resume/analyze'
 import { extractResumeText, InvalidResumeFileError, CorruptResumeFileError } from '@/lib/resume/extract-text'
 import { isResumeUploadRateLimited } from '@/lib/resume/rate-limit'
@@ -38,16 +38,13 @@ export async function POST(request: NextRequest) {
     throw err
   }
 
-  const apiKey = await getAnthropicApiKey()
-  if (!apiKey) {
-    return Response.json({ error: 'Resume analysis is not configured yet.' }, { status: 503 })
-  }
+  const ollamaConfig = await getOllamaConfig()
 
   let analysis
   try {
-    analysis = await analyzeResume(resumeText, apiKey)
+    analysis = await analyzeResume(resumeText, ollamaConfig)
   } catch (err) {
-    console.error('[resumes] Claude analysis failed:', err)
+    console.error('[resumes] Ollama analysis failed:', err)
     return Response.json({ error: 'Could not analyze your resume. Please try again.' }, { status: 502 })
   }
 
