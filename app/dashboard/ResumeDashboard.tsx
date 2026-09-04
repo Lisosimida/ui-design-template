@@ -2,6 +2,8 @@
 
 import { useRef, useState, type FormEvent } from 'react'
 import type { StoredResume } from './types'
+import { fetchJson } from './fetch-json'
+import JobMatchForm from './JobMatchForm'
 
 // Owns the resume list as local state (seeded from the server's initial
 // fetch) rather than re-fetching via router.refresh() after every upload or
@@ -9,6 +11,9 @@ import type { StoredResume } from './types'
 // from the list and used router.refresh(), which left a stale duplicate of
 // the result on screen after the same resume was later deleted from the
 // list. One state, updated directly by each action, can't drift like that.
+// JobMatchForm's resume picker is rendered here (fed by this same state)
+// rather than as a sibling fed by the server's static initial fetch, for
+// the same reason — a separate copy would drift out of sync on upload/delete.
 export default function ResumeDashboard({ initialResumes }: { initialResumes: StoredResume[] }) {
   const [resumes, setResumes] = useState<StoredResume[]>(initialResumes)
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
@@ -27,23 +32,17 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
     const formData = new FormData()
     formData.append('file', file)
 
-    try {
-      const response = await fetch('/api/resumes', { method: 'POST', body: formData })
-      const data = await response.json()
+    const result = await fetchJson<StoredResume>('/api/resumes', { method: 'POST', body: formData })
 
-      if (!response.ok) {
-        setError(data.error ?? 'Something went wrong. Please try again.')
-        setStatus('error')
-        return
-      }
-
-      setResumes((prev) => [data as StoredResume, ...prev])
-      setStatus('idle')
-      if (fileInputRef.current) fileInputRef.current.value = ''
-    } catch {
-      setError('Could not reach the server. Please try again.')
+    if (!result.ok) {
+      setError(result.error)
       setStatus('error')
+      return
     }
+
+    setResumes((prev) => [result.data, ...prev])
+    setStatus('idle')
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   async function handleDelete(id: string) {
@@ -52,21 +51,15 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
     setDeletingId(id)
     setError(null)
 
-    try {
-      const response = await fetch(`/api/resumes/${id}`, { method: 'DELETE' })
+    const result = await fetchJson<{ id: string }>(`/api/resumes/${id}`, { method: 'DELETE' })
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}))
-        setError(data.error ?? 'Could not delete this resume. Please try again.')
-        return
-      }
-
+    if (!result.ok) {
+      setError(result.error)
+    } else {
       setResumes((prev) => prev.filter((resume) => resume.id !== id))
-    } catch {
-      setError('Could not reach the server. Please try again.')
-    } finally {
-      setDeletingId(null)
     }
+
+    setDeletingId(null)
   }
 
   return (
@@ -182,6 +175,8 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
           ))}
         </div>
       )}
+
+      <JobMatchForm resumes={resumes} />
     </div>
   )
 }

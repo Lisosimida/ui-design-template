@@ -1,9 +1,5 @@
 import type { NextRequest } from 'next/server'
-import { getRequestUser } from '@/lib/supabase/route'
-
-// Postgres' code for a malformed UUID literal — surfaced as 400 rather than
-// the generic 500 below, since a garbage id in the URL is a client error.
-const INVALID_UUID = '22P02'
+import { getRequestUser, invalidResumeIdResponse } from '@/lib/supabase/route'
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -20,9 +16,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const { data, error } = await supabase.from('resumes').delete().eq('id', id).select('id').maybeSingle()
 
   if (error) {
-    if (error.code === INVALID_UUID) {
-      return Response.json({ error: 'Invalid resume id.' }, { status: 400 })
-    }
+    const invalidIdResponse = invalidResumeIdResponse(error)
+    if (invalidIdResponse) return invalidIdResponse
     console.error('[resumes] Failed to delete resume:', error.message)
     return Response.json({ error: 'Could not delete this resume. Please try again.' }, { status: 500 })
   }

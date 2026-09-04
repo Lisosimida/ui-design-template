@@ -1,6 +1,19 @@
 import { createServerClient } from '@supabase/ssr'
 import type { NextRequest } from 'next/server'
 
+// Postgres' error code for a malformed UUID literal — a resume id route
+// param that isn't valid UUID syntax surfaces this from any query filtering
+// on it, and callers map it to 400 rather than a generic 500.
+const POSTGRES_INVALID_UUID = '22P02'
+
+// Shared by every /api/resumes/[id]* route handler that filters a query by
+// the id param: returns the 400 response when `error` is a malformed-UUID
+// error, or null when it's some other error the caller should handle itself.
+export function invalidResumeIdResponse(error: { code?: string } | null): Response | null {
+  if (error?.code !== POSTGRES_INVALID_UUID) return null
+  return Response.json({ error: 'Invalid resume id.' }, { status: 400 })
+}
+
 // Route Handlers can read cookies straight off the NextRequest, unlike
 // Server Components/Actions which need next/headers' cookies() — using this
 // (not lib/supabase/server.ts) keeps route handlers callable directly from

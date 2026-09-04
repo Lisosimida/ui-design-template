@@ -35,14 +35,14 @@ export async function POST(request: NextRequest) {
     throw err
   }
 
-  const apiKey = await getGeminiApiKey()
+  const [apiKey, model] = await Promise.all([getGeminiApiKey(), getGeminiModel()])
   if (!apiKey) {
     return Response.json({ error: 'Resume analysis is not configured yet.' }, { status: 503 })
   }
 
   let analysis
   try {
-    analysis = await analyzeResume(resumeText, { apiKey, model: await getGeminiModel() })
+    analysis = await analyzeResume(resumeText, { apiKey, model })
   } catch (err) {
     console.error('[resumes] Gemini analysis failed:', err)
     return Response.json({ error: 'Could not analyze your resume. Please try again.' }, { status: 502 })
