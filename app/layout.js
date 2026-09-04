@@ -5,8 +5,8 @@ const display = Space_Grotesk({ subsets: ['latin'], weight: ['500', '700'], vari
 const sans = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-sans' })
 
 export const metadata = {
-  title: 'Launchbase - Product Launch & Event Template',
-  description: 'A config-driven Next.js template for product launch pages and event landing pages. Swap the config, not the code.',
+  title: 'ResumeReview - AI-Powered Resume Feedback',
+  description: 'Upload your resume and get instant, structured AI feedback on clarity, impact, and gaps.',
   robots: 'index, follow',
 }
 
