@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { createRouteClient } from '@/lib/supabase/route'
-import { getOllamaConfig } from '@/lib/ollama/client'
+import { getGeminiApiKey, getGeminiModel } from '@/lib/gemini/client'
 import { analyzeResume } from '@/lib/resume/analyze'
 import { extractResumeText, InvalidResumeFileError, CorruptResumeFileError } from '@/lib/resume/extract-text'
 import { isResumeUploadRateLimited } from '@/lib/resume/rate-limit'
@@ -38,13 +38,16 @@ export async function POST(request: NextRequest) {
     throw err
   }
 
-  const ollamaConfig = await getOllamaConfig()
+  const apiKey = await getGeminiApiKey()
+  if (!apiKey) {
+    return Response.json({ error: 'Resume analysis is not configured yet.' }, { status: 503 })
+  }
 
   let analysis
   try {
-    analysis = await analyzeResume(resumeText, ollamaConfig)
+    analysis = await analyzeResume(resumeText, { apiKey, model: await getGeminiModel() })
   } catch (err) {
-    console.error('[resumes] Ollama analysis failed:', err)
+    console.error('[resumes] Gemini analysis failed:', err)
     return Response.json({ error: 'Could not analyze your resume. Please try again.' }, { status: 502 })
   }
 

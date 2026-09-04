@@ -3,8 +3,8 @@ import { z } from 'zod'
 // One model call produces both the structured resume data and the written
 // feedback (see analyze.ts) — a single schema keeps that atomic instead of
 // two round trips that could disagree with each other. Also doubles as the
-// JSON Schema handed to Ollama's structured-output `format` field via
-// zod's built-in toJSONSchema().
+// JSON Schema handed to Gemini's structured-output `responseJsonSchema`
+// field via zod's built-in toJSONSchema().
 export const resumeAnalysisSchema = z.object({
   name: z.string().nullable(),
   skills: z.array(z.string()),
