@@ -21,6 +21,8 @@ only uploads a version at 0% traffic and requires a separate
 Gradual Deployments canary flow, switched off here since this project
 has no canary-testing workflow to make it worth the extra step.)
 
+<!-- verification marker: confirming auto-deploy after dashboard fix, 2026-09-05 -->
+
 ## Database migrations
 
 There are no down-migrations in `supabase/migrations/`, and none are required by tooling — this is a process rule, enforced by code review, not by CI:
