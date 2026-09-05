@@ -200,6 +200,21 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
             <p className="rl-display" style={{ position: 'relative', margin: 0, fontSize: 20, fontWeight: 700 }}>
               Scanning your skills, experience &amp; gaps
             </p>
+
+            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 420, marginTop: 6 }}>
+              <div className="rl-checklist-item rl-checklist-done">
+                <CheckIcon />
+                <span>Extracted your text</span>
+              </div>
+              <div className="rl-checklist-item rl-checklist-done">
+                <CheckIcon />
+                <span>Found your skills &amp; experience</span>
+              </div>
+              <div className="rl-checklist-item rl-checklist-pending">
+                <SpinnerIcon color="var(--rl-ink)" size={18} />
+                <span>Writing feedback&hellip;</span>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
@@ -300,10 +315,22 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
           </p>
         </div>
       ) : (
-        <div style={{ marginTop: 48, display: 'flex', flexDirection: 'column', gap: 40 }}>
-          {resumes.map((resume) => (
-            <ResumeResultCard key={resume.id} resume={resume} onDelete={handleDelete} isDeleting={deletingId === resume.id} />
-          ))}
+        <div style={{ marginTop: 48 }}>
+          <h2 className="rl-display" style={{ margin: '0 0 24px', fontSize: 40, fontWeight: 700, lineHeight: 1.08, letterSpacing: '-0.01em' }}>
+            Your resume,
+            <br />
+            <span style={{ position: 'relative', display: 'inline-block' }}>
+              decoded.
+              <svg width="150" height="14" viewBox="0 0 150 14" className="rl-squiggle-underline">
+                <path d="M2 10 C 30 2, 60 2, 80 8 S 130 14, 148 4" fill="none" stroke="var(--rl-blue)" strokeWidth="5" strokeLinecap="round" />
+              </svg>
+            </span>
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+            {resumes.map((resume) => (
+              <ResumeResultCard key={resume.id} resume={resume} onDelete={handleDelete} isDeleting={deletingId === resume.id} />
+            ))}
+          </div>
         </div>
       )}
 
@@ -618,6 +645,14 @@ function WarningIcon() {
       <path d="M12 9v4" />
       <path d="M12 17h.01" />
       <path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5" />
     </svg>
   )
 }

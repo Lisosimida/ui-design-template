@@ -161,6 +161,26 @@
   pointer-events: none;
 }
 
+.resume-lab .rl-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.resume-lab .rl-checklist-done {
+  background: var(--rl-lime);
+  color: var(--rl-lime-ink);
+  border: 2px solid var(--rl-ink);
+}
+.resume-lab .rl-checklist-pending {
+  background: var(--rl-surface);
+  color: var(--rl-ink);
+  border: 2px dashed var(--rl-ink);
+}
+
 @keyframes rl-scan {
   0% {
     transform: translateY(-100%);
