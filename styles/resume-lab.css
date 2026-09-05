@@ -1,0 +1,227 @@
+/* Scoped theme for the resume-upload dashboard section only — a
+   deliberately loud, colorful "riso-print/zine" direction, kept off the
+   rest of the app (marketing page, auth, nav) via the .resume-lab
+   ancestor. Palette matches the reviewed Claude Design canvas
+   (https://claude.ai/code/artifact/38f44002-708e-4854-8f14-6476837d94de),
+   contrast-adjusted per that review before being built here. */
+
+.resume-lab {
+  --rl-ink: oklch(22% 0.03 50);
+  --rl-muted: oklch(40% 0.025 50);
+  --rl-paper: oklch(96% 0.02 75);
+  --rl-surface: oklch(99% 0.004 75);
+  --rl-orange: oklch(68% 0.19 45);
+  --rl-orange-ink: oklch(20% 0.03 45);
+  --rl-blue: oklch(52% 0.19 260);
+  --rl-blue-fg: oklch(97% 0.01 260);
+  --rl-lime: oklch(88% 0.17 125);
+  --rl-lime-ink: oklch(28% 0.06 125);
+  --rl-pink: oklch(78% 0.16 15);
+  --rl-pink-ink: oklch(24% 0.05 15);
+  --rl-danger: oklch(58% 0.17 25);
+
+  position: relative;
+  color: var(--rl-ink);
+  background: var(--rl-paper);
+  background-image: radial-gradient(oklch(22% 0.03 50 / 0.06) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+  border-radius: 28px;
+  padding: 40px 40px 56px;
+}
+
+.resume-lab .rl-display {
+  font-family: var(--font-display), 'Space Grotesk', ui-sans-serif, sans-serif;
+}
+
+.resume-lab a {
+  color: var(--rl-blue);
+}
+.resume-lab a:hover {
+  color: var(--rl-orange);
+}
+
+.resume-lab :focus-visible {
+  outline: 2px solid var(--rl-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.resume-lab .rl-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--rl-ink);
+  color: var(--rl-paper);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+}
+
+.resume-lab .rl-card {
+  background: var(--rl-surface);
+  border: 3px solid var(--rl-ink);
+  border-radius: 20px;
+  box-shadow: 5px 5px 0 var(--rl-ink);
+}
+
+.resume-lab .rl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-display), 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  border: 3px solid var(--rl-ink);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 120ms ease;
+}
+.resume-lab .rl-btn:active {
+  transform: scale(0.97);
+}
+.resume-lab .rl-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.resume-lab .rl-btn-primary {
+  background: var(--rl-blue);
+  color: var(--rl-blue-fg);
+  box-shadow: 4px 4px 0 var(--rl-ink);
+  padding: 14px 30px;
+  font-size: 15px;
+}
+
+.resume-lab .rl-btn-danger {
+  background: var(--rl-surface);
+  color: var(--rl-danger);
+  border-color: var(--rl-danger);
+  box-shadow: none;
+  padding: 10px 16px;
+  font-size: 13px;
+}
+.resume-lab .rl-btn-danger:hover:not(:disabled) {
+  background: var(--rl-danger);
+  color: var(--rl-surface);
+}
+
+.resume-lab .rl-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border: 2.5px solid var(--rl-ink);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 3px 3px 0 var(--rl-ink);
+}
+
+.resume-lab .rl-sticker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border: 3px solid var(--rl-ink);
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 3px 3px 0 var(--rl-ink);
+}
+
+.resume-lab .rl-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 52px 32px;
+  background: var(--rl-surface);
+  border: 3px dashed var(--rl-ink);
+  border-radius: 28px;
+  transform: rotate(-0.6deg);
+  transition: transform 150ms ease, border-color 150ms ease;
+}
+
+.resume-lab .rl-dropzone[data-drag-active='true'] {
+  border-color: var(--rl-blue);
+  transform: rotate(0deg) scale(1.01);
+}
+
+.resume-lab .rl-dropzone[data-drag-reject='true'] {
+  border-color: var(--rl-danger);
+}
+
+.resume-lab .rl-squiggle-underline {
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  pointer-events: none;
+}
+
+@keyframes rl-scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(420%);
+  }
+}
+@keyframes rl-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+@keyframes rl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes rl-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(8px);
+  }
+  60% {
+    transform: translateX(-6px);
+  }
+  80% {
+    transform: translateX(6px);
+  }
+}
+
+.resume-lab .rl-scanbar {
+  animation: rl-scan 1.8s ease-in-out infinite;
+}
+.resume-lab .rl-pulsebadge {
+  animation: rl-pulse 1.6s ease-in-out infinite;
+}
+.resume-lab .rl-spinner {
+  animation: rl-spin 1s linear infinite;
+}
+.resume-lab .rl-shake {
+  animation: rl-shake 0.4s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resume-lab .rl-scanbar,
+  .resume-lab .rl-pulsebadge,
+  .resume-lab .rl-spinner,
+  .resume-lab .rl-shake,
+  .resume-lab .rl-dropzone {
+    animation: none !important;
+    transition: none !important;
+  }
+}
