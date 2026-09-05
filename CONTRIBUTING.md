@@ -10,6 +10,17 @@
 
 This is a required status check on `prod` (repo Settings → Branches), so PRs into it can't merge with a red build.
 
+## Deploys
+
+Cloudflare Workers Builds watches `prod` and deploys on every push. The
+dashboard's Deploy command is `npx wrangler deploy`, so a green build goes
+straight to 100% production traffic automatically — no manual promotion
+step. (It previously defaulted to `npx wrangler versions upload`, which
+only uploads a version at 0% traffic and requires a separate
+`wrangler versions deploy <id>@100` to go live; that's Cloudflare's
+Gradual Deployments canary flow, switched off here since this project
+has no canary-testing workflow to make it worth the extra step.)
+
 ## Database migrations
 
 There are no down-migrations in `supabase/migrations/`, and none are required by tooling — this is a process rule, enforced by code review, not by CI:
