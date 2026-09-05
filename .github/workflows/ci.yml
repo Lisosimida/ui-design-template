@@ -41,3 +41,12 @@ jobs:
 
       - name: Test
         run: npm test
+
+      # Builds the actual artifact Cloudflare Workers Builds deploys
+      # (`.open-next/worker.js`, per wrangler.jsonc's `main`). `next build`
+      # alone (the step above, implicitly run via tsc/test) does not produce
+      # this — only this command does — so this is the only thing that would
+      # have caught the Sentry/@opentelemetry/api Node-middleware bundling
+      # failure that broke every Cloudflare deploy before this check existed.
+      - name: Build Cloudflare Worker bundle
+        run: npx opennextjs-cloudflare build

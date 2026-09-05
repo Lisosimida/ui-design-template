@@ -1,0 +1,21 @@
+diff --git a/node_modules/@opennextjs/cloudflare/dist/cli/build/open-next/bundle-node-middleware.js b/node_modules/@opennextjs/cloudflare/dist/cli/build/open-next/bundle-node-middleware.js
+index 6cc1cb1..ffbb95c 100644
+--- a/node_modules/@opennextjs/cloudflare/dist/cli/build/open-next/bundle-node-middleware.js
++++ b/node_modules/@opennextjs/cloudflare/dist/cli/build/open-next/bundle-node-middleware.js
+@@ -164,7 +164,15 @@ export async function bundleNodeMiddleware(options) {
+     // dependency that most apps do not install. On the edge runtime Next.js does not fall
+     // back to its compiled copy when the require throws, so alias to that copy - but only
+     // when the app has not installed the real package, otherwise the real one is used.
+-    const hasOpentelemetry = existsSync(path.join(options.appBuildOutputPath, "node_modules", "@opentelemetry", "api"));
++    //
++    // PATCHED (see patches/@opennextjs+cloudflare+*.patch): always alias, even when the
++    // real package is installed. When it is (e.g. pulled in transitively by @sentry/nextjs),
++    // Next's own file-tracer only copies the CJS build into this bundle's traced
++    // node_modules copy, but esbuild's `mainFields: ["module", "main"]` below prefers the
++    // ESM entry regardless - which was never copied - and the build fails trying to
++    // resolve `@opentelemetry/api`'s `build/esm/index.js`. Next's compiled copy has no
++    // "module" field, so it resolves via `main` either way and sidesteps the mismatch.
++    const hasOpentelemetry = false;
+     const updater = new ContentUpdater(options);
+     await build({
+         entryPoints: [path.join(options.openNextDistDir, "adapters", "middleware.js")],
