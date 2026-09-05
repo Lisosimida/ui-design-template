@@ -53,14 +53,18 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
   if (resumes.length === 0) return null
 
   return (
-    <div className="card mt-10 flex flex-col gap-4 p-8">
+    <div className="rl-card" style={{ marginTop: 40, padding: 32, display: 'flex', flexDirection: 'column', gap: 16, transform: 'rotate(-0.3deg)' }}>
       <div>
-        <span className="eyebrow">Job match</span>
-        <h2 className="mt-3 font-display text-xl font-bold text-fg">See how a resume fits a job posting</h2>
+        <span className="rl-eyebrow" style={{ transform: 'none' }}>
+          Job match
+        </span>
+        <h2 className="rl-display" style={{ margin: '12px 0 0', fontSize: 20, fontWeight: 700 }}>
+          See how this resume fits a job posting
+        </h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm text-muted">
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--rl-muted)' }}>
           Resume
           <select
             value={resumeId}
@@ -72,7 +76,15 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
               setResult(null)
               setError(null)
             }}
-            className="rounded-xl border border-border/15 bg-surface-2 px-4 py-3 text-fg outline-none focus-visible:border-accent"
+            style={{
+              borderRadius: 14,
+              border: '2.5px solid var(--rl-ink)',
+              background: 'var(--rl-surface)',
+              color: 'var(--rl-ink)',
+              padding: '12px 16px',
+              fontWeight: 600,
+              fontSize: 14,
+            }}
           >
             {resumes.map((resume) => (
               <option key={resume.id} value={resume.id}>
@@ -82,7 +94,7 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
           </select>
         </label>
 
-        <label className="flex flex-col gap-1 text-sm text-muted">
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--rl-muted)' }}>
           Job description
           <textarea
             value={jobDescription}
@@ -90,35 +102,46 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
             required
             rows={6}
             placeholder="Paste the job description here…"
-            className="rounded-xl border border-border/15 bg-surface-2 px-4 py-3 text-fg outline-none focus-visible:border-accent"
+            style={{
+              borderRadius: 14,
+              border: '2.5px solid var(--rl-ink)',
+              background: 'var(--rl-surface)',
+              color: 'var(--rl-ink)',
+              padding: '12px 16px',
+              fontWeight: 500,
+              fontSize: 14,
+              resize: 'vertical',
+            }}
           />
         </label>
 
         {error && (
-          <p role="alert" className="text-sm text-red-400">
+          <p role="alert" style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--rl-danger)' }}>
             {error}
           </p>
         )}
 
-        <button type="submit" disabled={status === 'loading'} className="btn-primary self-start disabled:opacity-60">
+        <button type="submit" disabled={status === 'loading'} className="rl-btn rl-btn-primary" style={{ alignSelf: 'flex-start' }}>
           {status === 'loading' ? 'Comparing…' : 'Compare'}
         </button>
       </form>
 
       {result && (
-        <div className="flex flex-col gap-4 border-t border-border/10 pt-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderTop: '2px dashed oklch(22% 0.03 50 / 0.2)', paddingTop: 20 }}>
           <div>
-            <span className="font-semibold text-fg">Fit score — </span>
-            <span className="font-display text-2xl font-bold text-accent">{result.fitScore}</span>
-            <span className="text-muted">/100</span>
+            <span style={{ fontWeight: 700 }}>Fit score &mdash; </span>
+            <span className="rl-display" style={{ fontSize: 24, fontWeight: 700, color: 'var(--rl-blue)' }}>
+              {result.fitScore}
+            </span>
+            <span style={{ color: 'var(--rl-muted)' }}>/100</span>
           </div>
 
-          <p className="text-sm text-muted">{result.summary}</p>
+          <p style={{ margin: 0, fontSize: 14, color: 'var(--rl-muted)' }}>{result.summary}</p>
 
           {result.strengths.length > 0 && (
             <div>
-              <span className="font-semibold text-fg">Strengths</span>
-              <ul className="mt-1 list-disc pl-5 text-sm text-muted">
+              <span style={{ fontWeight: 700 }}>Strengths</span>
+              <ul style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 14, color: 'var(--rl-muted)' }}>
                 {result.strengths.map((strength) => (
                   <li key={strength}>{strength}</li>
                 ))}
@@ -128,8 +151,8 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
 
           {result.gaps.length > 0 && (
             <div>
-              <span className="font-semibold text-fg">Gaps</span>
-              <ul className="mt-1 list-disc pl-5 text-sm text-muted">
+              <span style={{ fontWeight: 700 }}>Gaps</span>
+              <ul style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 14, color: 'var(--rl-muted)' }}>
                 {result.gaps.map((gap) => (
                   <li key={gap}>{gap}</li>
                 ))}
@@ -139,8 +162,8 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
 
           {result.recommendations.length > 0 && (
             <div>
-              <span className="font-semibold text-fg">Recommendations</span>
-              <ul className="mt-1 list-disc pl-5 text-sm text-muted">
+              <span style={{ fontWeight: 700 }}>Recommendations</span>
+              <ul style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 14, color: 'var(--rl-muted)' }}>
                 {result.recommendations.map((recommendation) => (
                   <li key={recommendation}>{recommendation}</li>
                 ))}
