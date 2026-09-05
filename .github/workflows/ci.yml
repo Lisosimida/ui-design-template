@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [prod]
+
+jobs:
+  test:
+    name: Test & migration check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # `supabase start` applies every migration under supabase/migrations/
+      # to a brand-new local Postgres instance — if a migration doesn't
+      # apply cleanly, this step fails and the job (and the PR) fails with
+      # it. That's the "migrations apply cleanly against a clean database"
+      # check; there's no separate step for it.
+      - name: Start local Supabase (applies migrations to a clean database)
+        run: supabase start
+
+      - name: Export local Supabase connection details
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=$(supabase status -o env | grep '^API_URL=' | cut -d '=' -f2- | tr -d '"')" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(supabase status -o env | grep '^ANON_KEY=' | cut -d '=' -f2- | tr -d '"')" >> "$GITHUB_ENV"
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npm test
+
+      # Builds the actual artifact Cloudflare Workers Builds deploys
+      # (`.open-next/worker.js`, per wrangler.jsonc's `main`). `next build`
+      # alone (the step above, implicitly run via tsc/test) does not produce
+      # this — only this command does — so this is the only thing that would
+      # have caught the Sentry/@opentelemetry/api Node-middleware bundling
+      # failure that broke every Cloudflare deploy before this check existed.
+      - name: Build Cloudflare Worker bundle
+        run: npx opennextjs-cloudflare build

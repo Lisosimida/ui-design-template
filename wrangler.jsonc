@@ -8,10 +8,35 @@
     "binding": "ASSETS",
     "directory": ".open-next/assets"
   },
+  // Not secrets: RLS is the Supabase security boundary (not anon-key
+  // secrecy), and the Sentry DSN / PostHog key are client-exposed by design.
+  // See .env.local.example. GEMINI_API_KEY is the one real secret — set via
+  // `wrangler secret put GEMINI_API_KEY`, never here.
+  "vars": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://rassprkwzsyookujmlef.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhc3Nwcmt3enN5b29rdWptbGVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0MDcxMTIsImV4cCI6MjEwMzk4MzExMn0.jM--Twrxuwa_NZOkcTuJ_Xs5bTPBvYuLHJiyDVgWCyU",
+    "NEXT_PUBLIC_SENTRY_DSN": "https://4e3dcd552825f338f6a42dd0cd2aa0f2@o4512021513961472.ingest.us.sentry.io/4512021518483456",
+    "SENTRY_ORG": "lisosimida",
+    "SENTRY_PROJECT": "ui-template-design-dev",
+    "NEXT_PUBLIC_POSTHOG_KEY": "phc_nnbvD3DyYGHhjeWhPsHz7igiv4es3aBoqKxitGVYcFvX",
+    "GEMINI_MODEL": "gemini-3.6-flash"
+  },
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
       "service": "ui-design-template"
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "RESUME_UPLOAD_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 10, "period": 60 }
+    },
+    {
+      "name": "JOB_MATCH_RATE_LIMITER",
+      "namespace_id": "1002",
+      "simple": { "limit": 10, "period": 60 }
     }
   ]
 }

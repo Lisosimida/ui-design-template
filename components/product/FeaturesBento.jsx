@@ -7,6 +7,9 @@ import {
   ChatBubbleLeftRightIcon,
   RectangleGroupIcon,
   ChartBarIcon,
+  DocumentTextIcon,
+  SparklesIcon,
+  LockClosedIcon,
 } from "@heroicons/react/24/outline";
 
 const ICONS = {
@@ -15,6 +18,9 @@ const ICONS = {
   ChatBubbleLeftRightIcon,
   RectangleGroupIcon,
   ChartBarIcon,
+  DocumentTextIcon,
+  SparklesIcon,
+  LockClosedIcon,
 };
 
 const SPAN = {

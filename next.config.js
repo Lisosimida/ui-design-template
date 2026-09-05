@@ -13,9 +13,17 @@ const nextConfig = {
 
 }
 
-module.exports = nextConfig
-
 if (process.env.NODE_ENV === 'development') {
   const { initOpenNextCloudflareForDev } = require('@opennextjs/cloudflare')
   initOpenNextCloudflareForDev()
 }
+
+const { withSentryConfig } = require('@sentry/nextjs/config')
+
+module.exports = withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: true,
+  // Source map upload needs SENTRY_AUTH_TOKEN, deliberately not wired yet —
+  // out of scope for ticket #4 (SDK wiring only, see spec Out of Scope).
+})

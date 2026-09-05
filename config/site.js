@@ -1,32 +1,46 @@
-// Shared content for the template's own showcase/landing page (app/page.js).
-// This is the template's own identity — not either demo's fictional brand.
+// Shared content for the marketing homepage (app/page.js).
 const siteConfig = {
-  templateName: "Launchbase",
-  tagline: "One template, two ways to launch.",
-  headline: "A design system for product launches and events — not two separate templates.",
+  productName: "ResumeReview",
+  tagline: "AI-powered resume review",
+  headline: "Find out what your resume isn't saying.",
   subhead:
-    "Launchbase ships as one shared component system with swappable sections. See it fully populated for a SaaS product launch and a two-day conference, then get the same template for your own.",
+    "Upload a PDF or Word resume and get instant, structured feedback on clarity, impact, and gaps — plus a clean breakdown of your skills, experience, and education.",
   nav: [
-    { label: "Product demo", href: "/demo/product" },
-    { label: "Event demo", href: "/demo/event" },
+    { label: "How it works", href: "#how-it-works" },
+    { label: "Sign in", href: "/sign-in" },
   ],
-  demos: [
+  primaryCta: { label: "Get your free review", href: "/sign-up" },
+  secondaryCta: { label: "Sign in", href: "/sign-in" },
+  features: [
     {
-      label: "Product launch",
-      href: "/demo/product",
-      accent: "indigo",
-      description: "Hero, social proof, bento features, pricing, testimonials, single-action CTA.",
+      icon: "DocumentTextIcon",
+      title: "Structured breakdown",
+      description: "Skills, experience, and education extracted automatically — no manual re-typing.",
     },
     {
-      label: "Event / conference",
-      href: "/demo/event",
-      accent: "coral",
-      description: "Countdown hero, speaker grid, tabbed agenda, venue map, tiered tickets.",
+      icon: "SparklesIcon",
+      title: "Feedback that's actually specific",
+      description: "Notes on clarity, impact, and the gaps a recruiter would flag — not generic tips.",
+    },
+    {
+      icon: "LockClosedIcon",
+      title: "Private by default",
+      description: "Your resume is scoped to your account with row-level security — nobody else can see it.",
     },
   ],
+  howItWorks: [
+    { step: "1", title: "Sign up", description: "Create a free account — takes about 10 seconds." },
+    { step: "2", title: "Upload your resume", description: "Drop in a PDF or DOCX file from your dashboard." },
+    { step: "3", title: "Get your results", description: "See your structured data and written feedback in under a minute." },
+  ],
+  finalCta: {
+    headline: "Ready to see your resume differently?",
+    subhead: "Free to try. No credit card required.",
+    cta: { label: "Create your account", href: "/sign-up" },
+  },
   contactEmail: "lisoh03@gmail.com",
   footer: {
-    note: "Launchbase is a config-driven Next.js template. Swap the config, not the code.",
+    note: "ResumeReview — AI-powered resume feedback.",
   },
 };
 
