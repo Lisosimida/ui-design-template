@@ -1,14 +1,14 @@
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import Hero from '../components/product/Hero';
-import FeaturesBento from '../components/product/FeaturesBento';
-import HowItWorks from '../components/product/HowItWorks';
-import FinalCta from '../components/product/FinalCta';
+import Navbar from '../components/resume-lab/Navbar';
+import Footer from '../components/resume-lab/Footer';
+import Hero from '../components/resume-lab/Hero';
+import Features from '../components/resume-lab/Features';
+import HowItWorks from '../components/resume-lab/HowItWorks';
+import FinalCta from '../components/resume-lab/FinalCta';
 import site from '../config/site';
 
 export default function HomePage() {
   return (
-    <>
+    <div className="resume-lab rl-page">
       <Navbar brand={site.productName} items={site.nav} cta={{ label: 'Sign up', href: '/sign-up' }} />
 
       <Hero
@@ -19,7 +19,7 @@ export default function HomePage() {
         secondaryCta={site.secondaryCta}
       />
 
-      <FeaturesBento
+      <Features
         id="features"
         eyebrow="Why it helps"
         heading="More than a spell-check."
@@ -41,6 +41,6 @@ export default function HomePage() {
       />
 
       <Footer brand={site.productName} note={site.footer.note} />
-    </>
+    </div>
   );
 }

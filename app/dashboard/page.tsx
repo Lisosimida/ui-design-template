@@ -22,20 +22,24 @@ export default async function DashboardPage() {
   const completeResumes = ((resumes ?? []) as RawResumeRow[]).filter(isCompleteResume)
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-16">
-      <div className="flex items-center justify-between">
-        <div>
-          <span className="eyebrow">Dashboard</span>
-          <h1 className="mt-4 font-display text-3xl font-bold text-fg">Welcome{user?.email ? `, ${user.email}` : ''}</h1>
+    <main className="resume-lab rl-page" style={{ padding: '48px 24px' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+          <div>
+            <div className="rl-eyebrow">Dashboard</div>
+            <h1 className="rl-display" style={{ margin: '16px 0 0', fontSize: 28, fontWeight: 700 }}>
+              Welcome{user?.email ? `, ${user.email}` : ''}
+            </h1>
+          </div>
+          <form action={signOut}>
+            <button type="submit" className="rl-btn rl-btn-outline" style={{ border: '2.5px solid var(--rl-ink)', padding: '10px 20px', fontSize: 13 }}>
+              Sign out
+            </button>
+          </form>
         </div>
-        <form action={signOut}>
-          <button type="submit" className="btn-secondary">
-            Sign out
-          </button>
-        </form>
-      </div>
 
-      <ResumeDashboard initialResumes={completeResumes} />
+        <ResumeDashboard initialResumes={completeResumes} />
+      </div>
     </main>
   )
 }

@@ -1,4 +1,5 @@
 import '@/styles/globals.css'
+import '@/styles/resume-lab.css'
 import { Space_Grotesk, Plus_Jakarta_Sans } from 'next/font/google'
 
 const display = Space_Grotesk({ subsets: ['latin'], weight: ['500', '700'], variable: '--font-display' })

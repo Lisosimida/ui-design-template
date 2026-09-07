@@ -10,49 +10,40 @@ export default function SignUpForm({ next }: { next?: string }) {
   const [state, formAction, pending] = useActionState(signUp, initialState)
 
   return (
-    <div className="card p-8">
-      <span className="eyebrow">Sign up</span>
-      <h1 className="mt-4 font-display text-2xl font-bold text-fg">Create your account</h1>
-      <p className="mt-2 text-sm text-muted">Upload a resume and get structured feedback in minutes.</p>
+    <div className="rl-card" style={{ padding: 32 }}>
+      <div className="rl-eyebrow">Sign up</div>
+      <h1 className="rl-display" style={{ margin: '20px 0 0', fontSize: 26, fontWeight: 700 }}>
+        Create your account
+      </h1>
+      <p style={{ margin: '8px 0 0', fontSize: 14, color: 'var(--rl-muted)', fontWeight: 500 }}>
+        Upload a resume and get structured feedback in minutes.
+      </p>
 
-      <form action={formAction} className="mt-6 flex flex-col gap-4">
+      <form action={formAction} style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
         {next && <input type="hidden" name="next" value={next} />}
-        <label className="flex flex-col gap-1 text-sm text-muted">
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--rl-muted)' }}>
           Email
-          <input
-            type="email"
-            name="email"
-            required
-            autoComplete="email"
-            className="rounded-xl border border-border/15 bg-surface-2 px-4 py-3 text-fg outline-none focus-visible:border-accent"
-          />
+          <input type="email" name="email" required autoComplete="email" className="rl-input" />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-muted">
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--rl-muted)' }}>
           Password
-          <input
-            type="password"
-            name="password"
-            required
-            minLength={6}
-            autoComplete="new-password"
-            className="rounded-xl border border-border/15 bg-surface-2 px-4 py-3 text-fg outline-none focus-visible:border-accent"
-          />
+          <input type="password" name="password" required minLength={6} autoComplete="new-password" className="rl-input" />
         </label>
 
         {state.error && (
-          <p role="alert" className="text-sm text-red-400">
+          <p role="alert" style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--rl-danger)' }}>
             {state.error}
           </p>
         )}
 
-        <button type="submit" disabled={pending} className="btn-primary mt-2 disabled:opacity-60">
+        <button type="submit" disabled={pending} className="rl-btn rl-btn-primary" style={{ marginTop: 8, justifyContent: 'center' }}>
           {pending ? 'Creating account…' : 'Create account'}
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-muted">
+      <p style={{ marginTop: 24, textAlign: 'center', fontSize: 14, color: 'var(--rl-muted)', fontWeight: 500 }}>
         Already have an account?{' '}
-        <Link href="/sign-in" className="font-semibold text-fg hover:text-accent">
+        <Link href="/sign-in" style={{ fontWeight: 700, color: 'var(--rl-blue)' }}>
           Sign in
         </Link>
       </p>

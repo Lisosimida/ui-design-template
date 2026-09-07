@@ -13,6 +13,15 @@ export const jobMatchSchema = z.object({
 
 export type JobMatch = z.infer<typeof jobMatchSchema>
 
+// A JobMatch once it's a row in job_matches (see supabase/migrations) —
+// what POST /api/resumes/[id]/match returns and what GET lists. Immutable
+// once created, so there's no separate "update" shape.
+export type StoredJobMatch = JobMatch & {
+  id: string
+  jobDescription: string
+  createdAt: string
+}
+
 // Validates the POST /api/resumes/[id]/match request body — same tool
 // (zod) already used for the Gemini response schemas above and elsewhere
 // in this codebase, instead of hand-rolled typeof/in checks.

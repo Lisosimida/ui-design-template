@@ -34,6 +34,19 @@ const ACCEPTED_TYPES = {
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
 }
 
+// Matches the "Max 10MB" copy shown in the dropzone — rejecting client-side
+// avoids sending a large file through a slow upload + Gemini round trip
+// only to fail late. (The API route itself has no size cap yet; this is a
+// UX guard, not a security one.)
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
+
+function rejectionMessage(fileRejections: FileRejection[]): string {
+  const codes = new Set(fileRejections.flatMap((rejection) => rejection.errors.map((e) => e.code)))
+  if (codes.has('file-too-large')) return 'That file is over 10MB — try a smaller PDF or DOCX.'
+  if (codes.has('too-many-files')) return 'Upload one resume at a time.'
+  return 'That file type isn’t supported — upload a PDF or DOCX.'
+}
+
 function fireSuccessConfetti() {
   confetti({
     particleCount: 90,
@@ -48,6 +61,10 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
   const [resumes, setResumes] = useState<StoredResume[]>(initialResumes)
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [error, setError] = useState<string | null>(null)
+  // Which action produced the current error — decides whether the banner's
+  // retry button re-opens the file picker (upload) or is hidden (delete has
+  // no equivalent one-click retry, since the target row is right there).
+  const [errorSource, setErrorSource] = useState<'upload' | 'delete' | null>(null)
   const [pendingFileName, setPendingFileName] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const errorKeyRef = useRef(0)
@@ -66,6 +83,7 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
     if (!result.ok) {
       errorKeyRef.current += 1
       setError(result.error)
+      setErrorSource('upload')
       setStatus('error')
       return
     }
@@ -80,7 +98,8 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
       if (fileRejections.length > 0) {
         errorKeyRef.current += 1
-        setError('That file type isn’t supported — upload a PDF or DOCX.')
+        setError(rejectionMessage(fileRejections))
+        setErrorSource('upload')
         setStatus('error')
         return
       }
@@ -95,6 +114,7 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
     onDrop,
     accept: ACCEPTED_TYPES,
     maxFiles: 1,
+    maxSize: MAX_FILE_SIZE_BYTES,
     noClick: true,
     noKeyboard: true,
     disabled: status === 'loading',
@@ -111,6 +131,7 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
     if (!result.ok) {
       errorKeyRef.current += 1
       setError(result.error)
+      setErrorSource('delete')
     } else {
       setResumes((prev) => prev.filter((resume) => resume.id !== id))
     }
@@ -164,6 +185,7 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
               gap: 22,
               padding: '52px 32px',
               borderRadius: 28,
+              boxShadow: 'none',
               transform: 'rotate(-0.6deg)',
               overflow: 'hidden',
             }}
@@ -200,6 +222,29 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
             <p className="rl-display" style={{ position: 'relative', margin: 0, fontSize: 20, fontWeight: 700 }}>
               Scanning your skills, experience &amp; gaps
             </p>
+
+            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 420, marginTop: 6 }}>
+              <div className="rl-checklist-item rl-checklist-done">
+                <CheckIcon />
+                <span>Extracted your text</span>
+              </div>
+              <div className="rl-checklist-item rl-checklist-done">
+                <CheckIcon />
+                <span>Found your skills &amp; experience</span>
+              </div>
+              <div className="rl-checklist-item rl-checklist-pending">
+                <SpinnerIcon color="var(--rl-ink)" size={18} />
+                <span>Writing feedback&hellip;</span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="rl-sticker"
+            style={{ position: 'absolute', top: -18, right: -14, background: 'var(--rl-pink)', color: 'var(--rl-orange-ink)', transform: 'rotate(6deg)' }}
+          >
+            <BoltIcon />
+            Almost there
           </div>
         </div>
       ) : (
@@ -279,31 +324,74 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
           }}
         >
           <WarningIcon />
-          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--rl-danger)' }}>{error}</p>
+          <p style={{ margin: 0, flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--rl-danger)' }}>{error}</p>
+          {errorSource === 'upload' && (
+            <button
+              type="button"
+              onClick={open}
+              className="rl-btn"
+              style={{ flexShrink: 0, padding: '8px 16px', fontSize: 13, borderColor: 'var(--rl-danger)', color: 'var(--rl-danger)' }}
+            >
+              Try again
+            </button>
+          )}
         </div>
       )}
 
       {resumes.length === 0 ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            marginTop: 48,
-            paddingTop: 24,
-            borderTop: '2px dashed oklch(22% 0.03 50 / 0.2)',
-          }}
-        >
-          <HistoryIcon />
-          <p style={{ margin: 0, fontSize: 13, color: 'var(--rl-muted)', fontWeight: 600 }}>
-            Your uploaded resumes will show up here once you&rsquo;ve got one in.
-          </p>
-        </div>
+        status !== 'loading' && (
+          <div
+            style={{
+              marginTop: 48,
+              paddingTop: 32,
+              borderTop: '2px dashed oklch(22% 0.03 50 / 0.2)',
+              textAlign: 'center',
+            }}
+          >
+            <div
+              style={{
+                margin: '0 auto',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 56,
+                height: 56,
+                borderRadius: 999,
+                background: 'var(--rl-lime)',
+                border: '2.5px solid var(--rl-ink)',
+              }}
+            >
+              <HistoryIcon color="var(--rl-lime-ink)" />
+            </div>
+            <p className="rl-display" style={{ margin: '16px 0 0', fontSize: 18, fontWeight: 700 }}>
+              Nothing in the lab yet
+            </p>
+            <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--rl-muted)', fontWeight: 600 }}>
+              Upload a resume above and see your first breakdown in under a minute.
+            </p>
+            <button type="button" onClick={open} className="rl-btn rl-btn-primary" style={{ margin: '20px auto 0', padding: '10px 24px', fontSize: 14 }}>
+              Upload your first resume
+              <ArrowRightIcon />
+            </button>
+          </div>
+        )
       ) : (
-        <div style={{ marginTop: 48, display: 'flex', flexDirection: 'column', gap: 40 }}>
-          {resumes.map((resume) => (
-            <ResumeResultCard key={resume.id} resume={resume} onDelete={handleDelete} isDeleting={deletingId === resume.id} />
-          ))}
+        <div style={{ marginTop: 48 }}>
+          <h2 className="rl-display" style={{ margin: '0 0 24px', fontSize: 40, fontWeight: 700, lineHeight: 1.08, letterSpacing: '-0.01em' }}>
+            Your resume,
+            <br />
+            <span style={{ position: 'relative', display: 'inline-block' }}>
+              decoded.
+              <svg width="150" height="14" viewBox="0 0 150 14" className="rl-squiggle-underline">
+                <path d="M2 10 C 30 2, 60 2, 80 8 S 130 14, 148 4" fill="none" stroke="var(--rl-blue)" strokeWidth="5" strokeLinecap="round" />
+              </svg>
+            </span>
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+            {resumes.map((resume) => (
+              <ResumeResultCard key={resume.id} resume={resume} onDelete={handleDelete} isDeleting={deletingId === resume.id} />
+            ))}
+          </div>
         </div>
       )}
 
@@ -497,7 +585,7 @@ function ResumeResultCard({
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {resume.parsed_data.education.map((entry, index) => (
-              <div key={`${entry.institution}-${index}`} className="rl-card" style={{ padding: '18px 22px', boxShadow: 'none', borderWidth: 2.5 }}>
+              <div key={`${entry.institution}-${index}`} className="rl-card" style={{ padding: '18px 22px', borderRadius: 18, boxShadow: 'none', borderWidth: 2.5 }}>
                 <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{entry.institution}</p>
                 {(entry.degree || entry.year) && (
                   <p style={{ margin: '3px 0 0', fontSize: 13, fontWeight: 500, color: 'var(--rl-muted)' }}>
@@ -557,9 +645,9 @@ function BoltIcon() {
   )
 }
 
-function HistoryIcon() {
+function HistoryIcon({ color = 'var(--rl-muted)' }: { color?: string } = {}) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--rl-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 12a9 9 0 1 0 9-9" />
       <path d="M3 3v6h6" />
     </svg>
@@ -618,6 +706,14 @@ function WarningIcon() {
       <path d="M12 9v4" />
       <path d="M12 17h.01" />
       <path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5" />
     </svg>
   )
 }
