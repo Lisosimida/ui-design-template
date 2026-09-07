@@ -4,8 +4,13 @@ export default async function SignUpPage({ searchParams }: { searchParams: Promi
   const { next } = await searchParams
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-20">
-      <SignUpForm next={next} />
+    <main
+      className="resume-lab rl-page"
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
+    >
+      <div style={{ width: '100%', maxWidth: 420 }}>
+        <SignUpForm next={next} />
+      </div>
     </main>
   )
 }

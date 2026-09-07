@@ -10,48 +10,40 @@ export default function SignInForm({ next }: { next?: string }) {
   const [state, formAction, pending] = useActionState(signIn, initialState)
 
   return (
-    <div className="card p-8">
-      <span className="eyebrow">Sign in</span>
-      <h1 className="mt-4 font-display text-2xl font-bold text-fg">Welcome back</h1>
-      <p className="mt-2 text-sm text-muted">Sign in to see your parsed resumes and feedback.</p>
+    <div className="rl-card" style={{ padding: 32 }}>
+      <div className="rl-eyebrow">Sign in</div>
+      <h1 className="rl-display" style={{ margin: '20px 0 0', fontSize: 26, fontWeight: 700 }}>
+        Welcome back
+      </h1>
+      <p style={{ margin: '8px 0 0', fontSize: 14, color: 'var(--rl-muted)', fontWeight: 500 }}>
+        Sign in to see your parsed resumes and feedback.
+      </p>
 
-      <form action={formAction} className="mt-6 flex flex-col gap-4">
+      <form action={formAction} style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
         {next && <input type="hidden" name="next" value={next} />}
-        <label className="flex flex-col gap-1 text-sm text-muted">
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--rl-muted)' }}>
           Email
-          <input
-            type="email"
-            name="email"
-            required
-            autoComplete="email"
-            className="rounded-xl border border-border/15 bg-surface-2 px-4 py-3 text-fg outline-none focus-visible:border-accent"
-          />
+          <input type="email" name="email" required autoComplete="email" className="rl-input" />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-muted">
+        <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--rl-muted)' }}>
           Password
-          <input
-            type="password"
-            name="password"
-            required
-            autoComplete="current-password"
-            className="rounded-xl border border-border/15 bg-surface-2 px-4 py-3 text-fg outline-none focus-visible:border-accent"
-          />
+          <input type="password" name="password" required autoComplete="current-password" className="rl-input" />
         </label>
 
         {state.error && (
-          <p role="alert" className="text-sm text-red-400">
+          <p role="alert" style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--rl-danger)' }}>
             {state.error}
           </p>
         )}
 
-        <button type="submit" disabled={pending} className="btn-primary mt-2 disabled:opacity-60">
+        <button type="submit" disabled={pending} className="rl-btn rl-btn-primary" style={{ marginTop: 8, justifyContent: 'center' }}>
           {pending ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-muted">
+      <p style={{ marginTop: 24, textAlign: 'center', fontSize: 14, color: 'var(--rl-muted)', fontWeight: 500 }}>
         New here?{' '}
-        <Link href="/sign-up" className="font-semibold text-fg hover:text-accent">
+        <Link href="/sign-up" style={{ fontWeight: 700, color: 'var(--rl-blue)' }}>
           Create an account
         </Link>
       </p>

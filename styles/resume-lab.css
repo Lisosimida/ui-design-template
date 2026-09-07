@@ -1,6 +1,6 @@
-/* Scoped theme for the resume-upload dashboard section only — a
-   deliberately loud, colorful "riso-print/zine" direction, kept off the
-   rest of the app (marketing page, auth, nav) via the .resume-lab
+/* Site-wide theme — the loud, colorful "riso-print/zine" direction
+   originally built for the resume-upload dashboard, now applied across
+   the marketing page, auth, and dashboard shell via the .resume-lab
    ancestor. Palette matches the reviewed Claude Design canvas
    (https://claude.ai/code/artifact/38f44002-708e-4854-8f14-6476837d94de),
    contrast-adjusted per that review before being built here. */
@@ -20,6 +20,14 @@
   --rl-pink-ink: oklch(24% 0.05 15);
   --rl-danger: oklch(58% 0.17 25);
 
+  /* Motion tokens — expo-out for crisp click/press feedback (deceleration
+     on arrival per the easing guideline), a slight-overshoot spring for
+     playful hover/appear moments that suits the sticker aesthetic. */
+  --rl-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --rl-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --rl-dur-fast: 140ms;
+  --rl-dur-base: 220ms;
+
   position: relative;
   color: var(--rl-ink);
   background: var(--rl-paper);
@@ -27,6 +35,15 @@
   background-size: 16px 16px;
   border-radius: 28px;
   padding: 40px 40px 56px;
+}
+
+/* Full-bleed variant for whole-page shells (landing, auth, dashboard) as
+   opposed to the inset-card usage above (still used standalone, e.g. the
+   dashboard's upload/results panel nested inside a .rl-page shell). */
+.resume-lab.rl-page {
+  min-height: 100vh;
+  border-radius: 0;
+  padding: 0;
 }
 
 .resume-lab .rl-display {
@@ -68,7 +85,33 @@
   box-shadow: 5px 5px 0 var(--rl-ink);
 }
 
+/* Opt-in lift for cards that represent real interactive content (feature
+   tiles, steps) — not applied to the base .rl-card so structural panels
+   (nav, forms, file rows) don't gain a false "clickable" affordance.
+   Rotation goes through --rl-rotate instead of a literal transform so the
+   :hover/:active rules below can add translateY without a fight over
+   who owns the `transform` property. */
+.resume-lab .rl-card-hover {
+  transform: rotate(var(--rl-rotate, 0deg));
+  transition: transform var(--rl-dur-base) var(--rl-ease-spring), box-shadow var(--rl-dur-base) var(--rl-ease-out);
+}
+.resume-lab .rl-card-hover:hover {
+  transform: rotate(var(--rl-rotate, 0deg)) translateY(-4px);
+  box-shadow: 7px 7px 0 var(--rl-ink);
+}
+.resume-lab .rl-card-hover:active {
+  transform: rotate(var(--rl-rotate, 0deg)) translateY(-1px);
+  box-shadow: 3px 3px 0 var(--rl-ink);
+  transition-duration: 80ms;
+}
+
 .resume-lab .rl-btn {
+  /* Overridden per-variant below; keeps the physical "sticker button"
+     press — shadow grows on hover (lifting off the page) and flattens
+     on press (pushed into the page) — driven from one shared rule. */
+  --rl-btn-shadow-rest: 0 0 0 transparent;
+  --rl-btn-shadow-hover: 0 0 0 transparent;
+  --rl-btn-shadow-active: 0 0 0 transparent;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -78,10 +121,19 @@
   border: 3px solid var(--rl-ink);
   border-radius: 999px;
   cursor: pointer;
-  transition: transform 120ms ease;
+  transform: translate(0, 0);
+  box-shadow: var(--rl-btn-shadow-rest);
+  transition: transform var(--rl-dur-fast) var(--rl-ease-out), box-shadow var(--rl-dur-fast) var(--rl-ease-out),
+    background-color var(--rl-dur-fast) var(--rl-ease-out), color var(--rl-dur-fast) var(--rl-ease-out);
 }
-.resume-lab .rl-btn:active {
-  transform: scale(0.97);
+.resume-lab .rl-btn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--rl-btn-shadow-hover);
+}
+.resume-lab .rl-btn:active:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: var(--rl-btn-shadow-active);
+  transition-duration: 80ms;
 }
 .resume-lab .rl-btn:disabled {
   opacity: 0.6;
@@ -91,22 +143,90 @@
 .resume-lab .rl-btn-primary {
   background: var(--rl-blue);
   color: var(--rl-blue-fg);
-  box-shadow: 4px 4px 0 var(--rl-ink);
   padding: 14px 30px;
   font-size: 15px;
+  --rl-btn-shadow-rest: 4px 4px 0 var(--rl-ink);
+  --rl-btn-shadow-hover: 6px 6px 0 var(--rl-ink);
+  --rl-btn-shadow-active: 2px 2px 0 var(--rl-ink);
 }
 
 .resume-lab .rl-btn-danger {
   background: var(--rl-surface);
   color: var(--rl-danger);
   border-color: var(--rl-danger);
-  box-shadow: none;
   padding: 10px 16px;
   font-size: 13px;
+  transition: transform var(--rl-dur-fast) var(--rl-ease-out), box-shadow var(--rl-dur-fast) var(--rl-ease-out),
+    background-color var(--rl-dur-base) var(--rl-ease-out), color var(--rl-dur-base) var(--rl-ease-out);
 }
 .resume-lab .rl-btn-danger:hover:not(:disabled) {
   background: var(--rl-danger);
   color: var(--rl-surface);
+}
+
+.resume-lab .rl-btn-outline {
+  background: transparent;
+  color: var(--rl-ink);
+  padding: 14px 30px;
+  font-size: 15px;
+  transition: transform var(--rl-dur-fast) var(--rl-ease-out), box-shadow var(--rl-dur-fast) var(--rl-ease-out),
+    background-color var(--rl-dur-base) var(--rl-ease-out), color var(--rl-dur-base) var(--rl-ease-out);
+}
+.resume-lab .rl-btn-outline:hover:not(:disabled) {
+  background: var(--rl-ink);
+  color: var(--rl-paper);
+}
+
+.resume-lab .rl-input {
+  width: 100%;
+  border-radius: 14px;
+  border: 2.5px solid var(--rl-ink);
+  background: var(--rl-surface);
+  color: var(--rl-ink);
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  font-family: inherit;
+  transition: box-shadow var(--rl-dur-base) var(--rl-ease-out), border-color var(--rl-dur-base) var(--rl-ease-out);
+}
+.resume-lab .rl-input:hover {
+  border-color: var(--rl-blue);
+}
+.resume-lab .rl-input:focus-visible {
+  outline: none;
+  border-color: var(--rl-blue);
+  box-shadow: 0 0 0 4px oklch(52% 0.19 260 / 0.18);
+}
+.resume-lab .rl-input::placeholder {
+  color: var(--rl-muted);
+  font-weight: 500;
+}
+
+/* Chrome paints autofilled inputs with a fixed pale-yellow/blue fill that
+   ignores the theme — the inset-shadow trick is the only way to repaint it. */
+.resume-lab .rl-input:-webkit-autofill,
+.resume-lab .rl-input:-webkit-autofill:hover,
+.resume-lab .rl-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--rl-surface) inset;
+  -webkit-text-fill-color: var(--rl-ink);
+  caret-color: var(--rl-ink);
+}
+
+.resume-lab .rl-nav-link {
+  transition: color var(--rl-dur-base) var(--rl-ease-out), background-color var(--rl-dur-base) var(--rl-ease-out);
+}
+.resume-lab .rl-nav-link:hover {
+  color: var(--rl-ink) !important;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.resume-lab .rl-hero-grid {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .resume-lab .rl-hero-grid {
+    grid-template-columns: 1.1fr 0.9fr;
+  }
 }
 
 .resume-lab .rl-tag {
@@ -142,7 +262,7 @@
   border: 3px dashed var(--rl-ink);
   border-radius: 28px;
   transform: rotate(-0.6deg);
-  transition: transform 150ms ease, border-color 150ms ease;
+  transition: transform var(--rl-dur-base) var(--rl-ease-spring), border-color var(--rl-dur-fast) var(--rl-ease-out);
 }
 
 .resume-lab .rl-dropzone[data-drag-active='true'] {
@@ -243,5 +363,27 @@
   .resume-lab .rl-dropzone {
     animation: none !important;
     transition: none !important;
+  }
+
+  /* Keep hover/press *state* (color, shadow, position) but drop the
+     animated transition between states — feedback stays instant instead
+     of motion-based. */
+  .resume-lab .rl-btn,
+  .resume-lab .rl-btn:hover:not(:disabled),
+  .resume-lab .rl-btn:active:not(:disabled),
+  .resume-lab .rl-card-hover,
+  .resume-lab .rl-card-hover:hover,
+  .resume-lab .rl-card-hover:active,
+  .resume-lab .rl-nav-link,
+  .resume-lab .rl-input {
+    transition: none !important;
+  }
+  .resume-lab .rl-btn:hover:not(:disabled),
+  .resume-lab .rl-btn:active:not(:disabled) {
+    transform: none;
+  }
+  .resume-lab .rl-card-hover:hover,
+  .resume-lab .rl-card-hover:active {
+    transform: rotate(var(--rl-rotate, 0deg));
   }
 }
