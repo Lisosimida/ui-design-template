@@ -157,15 +157,21 @@ describe('job_matches RLS policies', () => {
     expect(error).not.toBeNull()
   })
 
-  it('has no delete policy — even the owner cannot delete a job match directly', async () => {
-    // Matches are immutable once created (see the migration); cleanup only
-    // happens via the resume's cascade delete, not a standalone delete path.
-    // RLS with no matching policy filters the delete to zero rows rather
-    // than erroring — same shape as the resumes delete-denial test above.
-    const { error } = await userAClient.from('job_matches').delete().eq('id', matchId)
+  it("never lets another user delete a job match they don't own", async () => {
+    // RLS filters the delete to zero matching rows rather than erroring —
+    // same shape as the resumes delete-denial test above.
+    const { error } = await userBClient.from('job_matches').delete().eq('id', matchId)
     expect(error).toBeNull()
 
     const { data } = await userAClient.from('job_matches').select().eq('id', matchId)
     expect(data).toHaveLength(1)
+  })
+
+  it('lets the owner delete their own job match', async () => {
+    const { error } = await userAClient.from('job_matches').delete().eq('id', matchId)
+    expect(error).toBeNull()
+
+    const { data } = await userAClient.from('job_matches').select().eq('id', matchId)
+    expect(data).toHaveLength(0)
   })
 })

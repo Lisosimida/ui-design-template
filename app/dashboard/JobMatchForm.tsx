@@ -11,6 +11,7 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [error, setError] = useState<string | null>(null)
   const [matches, setMatches] = useState<StoredJobMatch[]>([])
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // Pins the selection to a specific resume once one exists, instead of
   // re-deriving "resumes[0]" on every render — the latter silently swapped
@@ -81,6 +82,26 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
     setMatches((prev) => [response.data, ...prev])
     setJobDescription('')
     setStatus('idle')
+  }
+
+  async function handleDeleteMatch(matchId: string) {
+    // Guards against a double-click firing a second DELETE while the first
+    // is still in flight — without it, the first request succeeds and
+    // removes the match, then the second finds no matching row and 404s,
+    // surfacing a confusing error banner right after a delete that worked.
+    if (!resumeId || deletingId) return
+    if (!window.confirm('Delete this match from your history? This cannot be undone.')) return
+
+    setDeletingId(matchId)
+    const response = await fetchJson(`/api/resumes/${resumeId}/match/${matchId}`, { method: 'DELETE' })
+    setDeletingId(null)
+
+    if (!response.ok) {
+      setError(response.error)
+      return
+    }
+
+    setMatches((prev) => prev.filter((match) => match.id !== matchId))
   }
 
   if (resumes.length === 0) return null
@@ -176,7 +197,13 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
             {matches.length === 1 ? 'Match result' : `Past matches (${matches.length})`}
           </span>
           {matches.map((match, index) => (
-            <JobMatchEntry key={match.id} match={match} defaultOpen={index === 0} />
+            <JobMatchEntry
+              key={match.id}
+              match={match}
+              defaultOpen={index === 0}
+              onDelete={handleDeleteMatch}
+              isDeleting={deletingId === match.id}
+            />
           ))}
         </div>
       )}
@@ -184,7 +211,17 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
   )
 }
 
-function JobMatchEntry({ match, defaultOpen }: { match: StoredJobMatch; defaultOpen: boolean }) {
+function JobMatchEntry({
+  match,
+  defaultOpen,
+  onDelete,
+  isDeleting,
+}: {
+  match: StoredJobMatch
+  defaultOpen: boolean
+  onDelete: (matchId: string) => void
+  isDeleting: boolean
+}) {
   const snippet = match.jobDescription.length > 90 ? `${match.jobDescription.slice(0, 90)}…` : match.jobDescription
 
   return (
@@ -198,6 +235,23 @@ function JobMatchEntry({ match, defaultOpen }: { match: StoredJobMatch; defaultO
         <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--rl-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>
           {new Date(match.createdAt).toLocaleDateString()}
         </span>
+        <button
+          type="button"
+          // <summary> toggles the <details> open/closed on click by
+          // default — without stopping propagation, deleting would also
+          // flip the entry open/closed on the way out.
+          onClick={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            onDelete(match.id)
+          }}
+          disabled={isDeleting}
+          className="rl-btn rl-btn-danger"
+          style={{ flexShrink: 0, padding: '4px 10px', fontSize: 12 }}
+          aria-label="Delete this match"
+        >
+          <TrashIcon />
+        </button>
       </summary>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
@@ -237,5 +291,15 @@ function JobMatchEntry({ match, defaultOpen }: { match: StoredJobMatch; defaultO
         )}
       </div>
     </details>
+  )
+}
+
+function TrashIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h18" />
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    </svg>
   )
 }
