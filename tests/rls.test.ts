@@ -90,3 +90,82 @@ describe('resumes RLS policies', () => {
     expect(data).toHaveLength(1)
   })
 })
+
+describe('job_matches RLS policies', () => {
+  let userAClient: SupabaseClient
+  let userBClient: SupabaseClient
+  let userAId: string
+  let resumeId: string
+  let matchId: string
+
+  beforeAll(async () => {
+    const suffix = Date.now()
+    userAClient = await createTestUser(`rls-jobmatch-a-${suffix}@example.com`, 'password123')
+    userBClient = await createTestUser(`rls-jobmatch-b-${suffix}@example.com`, 'password123')
+
+    const {
+      data: { user },
+    } = await userAClient.auth.getUser()
+    userAId = user!.id
+
+    const { data: resume, error: resumeError } = await userAClient
+      .from('resumes')
+      .insert({ user_id: userAId, original_filename: 'resume.pdf' })
+      .select()
+      .single()
+    if (resumeError) throw resumeError
+    resumeId = resume.id
+
+    const { data: match, error: matchError } = await userAClient
+      .from('job_matches')
+      .insert({
+        resume_id: resumeId,
+        user_id: userAId,
+        job_description: 'We need a senior engineer.',
+        fit_score: 80,
+        summary: 'Good overlap.',
+        strengths: ['TypeScript'],
+        gaps: [],
+        recommendations: [],
+      })
+      .select()
+      .single()
+    if (matchError) throw matchError
+    matchId = match.id
+  })
+
+  it('lets a user select their own job match', async () => {
+    const { data, error } = await userAClient.from('job_matches').select().eq('id', matchId)
+    expect(error).toBeNull()
+    expect(data).toHaveLength(1)
+  })
+
+  it("never returns another user's job match on select", async () => {
+    const { data, error } = await userBClient.from('job_matches').select().eq('id', matchId)
+    expect(error).toBeNull()
+    expect(data).toHaveLength(0)
+  })
+
+  it("rejects inserting a job match under another user's id", async () => {
+    const { error } = await userBClient.from('job_matches').insert({
+      resume_id: resumeId,
+      user_id: userAId,
+      job_description: 'x',
+      fit_score: 1,
+      summary: 'x',
+    })
+    expect(error).not.toBeNull()
+  })
+
+  it('has no delete policy — even the owner cannot delete a job match directly', async () => {
+    // Matches are immutable once created (see the migration); cleanup only
+    // happens via the resume's cascade delete, not a standalone delete path.
+    // RLS with no matching policy filters the delete to zero rows rather
+    // than erroring — same shape as the resumes delete-denial test above.
+    const { error } = await userAClient.from('job_matches').delete().eq('id', matchId)
+    expect(error).toBeNull()
+
+    const { data } = await userAClient.from('job_matches').select().eq('id', matchId)
+    expect(data).toHaveLength(1)
+  })
+})

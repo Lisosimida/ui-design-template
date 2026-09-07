@@ -15,7 +15,7 @@ vi.mock('@google/genai', () => ({
 
 process.env.GEMINI_API_KEY = 'test-gemini-key'
 
-const { POST } = await import('../app/api/resumes/[id]/match/route')
+const { POST, GET } = await import('../app/api/resumes/[id]/match/route')
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -78,6 +78,12 @@ function buildMatchRequest(jar: Map<string, string>, resumeId: string, body?: un
   return request
 }
 
+function buildListRequest(jar: Map<string, string>, resumeId: string) {
+  const request = new NextRequest(`http://localhost:3000/api/resumes/${resumeId}/match`, { method: 'GET' })
+  jar.forEach((value, name) => request.cookies.set(name, value))
+  return request
+}
+
 describe('POST /api/resumes/[id]/match', () => {
   beforeEach(() => {
     mockGenerateContent.mockReset()
@@ -93,7 +99,7 @@ describe('POST /api/resumes/[id]/match', () => {
     expect(mockGenerateContent).not.toHaveBeenCalled()
   })
 
-  it('matches the resume against a pasted job description', async () => {
+  it('matches the resume against a pasted job description and persists the result', async () => {
     const { jar, userId, client } = await signInAndCaptureCookies()
     const resumeId = await insertResume(client, userId)
 
@@ -102,12 +108,63 @@ describe('POST /api/resumes/[id]/match', () => {
     const body = await response.json()
 
     expect(response.status).toBe(200)
-    expect(body).toEqual(FIXTURE_MATCH)
+    expect(body).toMatchObject(FIXTURE_MATCH)
+    expect(body.id).toEqual(expect.any(String))
+    expect(body.jobDescription).toBe('We need a senior TypeScript engineer.')
+    expect(body.createdAt).toEqual(expect.any(String))
     expect(mockGenerateContent).toHaveBeenCalledTimes(1)
 
     const [[callArgs]] = mockGenerateContent.mock.calls
     expect(callArgs.contents).toContain('We need a senior TypeScript engineer.')
     expect(callArgs.contents).toContain('Jane Doe, Senior Engineer...')
+
+    // Persisted, not just returned — a fresh GET (not just re-reading the
+    // POST response) is what actually proves the row survived.
+    const listResponse = await GET(buildListRequest(jar, resumeId), { params: Promise.resolve({ id: resumeId }) })
+    const listBody = await listResponse.json()
+    expect(listResponse.status).toBe(200)
+    expect(listBody).toHaveLength(1)
+    expect(listBody[0].id).toBe(body.id)
+  })
+
+  it('lists past matches for a resume, newest first, scoped to the signed-in user', async () => {
+    const { jar, userId, client } = await signInAndCaptureCookies()
+    const resumeId = await insertResume(client, userId)
+
+    mockGenerateContent.mockResolvedValueOnce({ text: JSON.stringify({ ...FIXTURE_MATCH, fitScore: 40 }) })
+    await POST(buildMatchRequest(jar, resumeId, { jobDescription: 'First posting, a junior role.' }), {
+      params: Promise.resolve({ id: resumeId }),
+    })
+
+    mockGenerateContent.mockResolvedValueOnce({ text: JSON.stringify({ ...FIXTURE_MATCH, fitScore: 90 }) })
+    await POST(buildMatchRequest(jar, resumeId, { jobDescription: 'Second posting, a senior role.' }), {
+      params: Promise.resolve({ id: resumeId }),
+    })
+
+    const response = await GET(buildListRequest(jar, resumeId), { params: Promise.resolve({ id: resumeId }) })
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body).toHaveLength(2)
+    // Newest first.
+    expect(body[0].jobDescription).toBe('Second posting, a senior role.')
+    expect(body[0].fitScore).toBe(90)
+    expect(body[1].jobDescription).toBe('First posting, a junior role.')
+    expect(body[1].fitScore).toBe(40)
+
+    const attacker = await signInAndCaptureCookies()
+    const attackerResponse = await GET(buildListRequest(attacker.jar, resumeId), {
+      params: Promise.resolve({ id: resumeId }),
+    })
+    expect(attackerResponse.status).toBe(200)
+    expect(await attackerResponse.json()).toEqual([])
+  })
+
+  it('rejects an unauthenticated list request', async () => {
+    const response = await GET(buildListRequest(new Map(), '00000000-0000-0000-0000-000000000000'), {
+      params: Promise.resolve({ id: 'irrelevant' }),
+    })
+    expect(response.status).toBe(401)
   })
 
   it('rejects a missing job description with 400', async () => {

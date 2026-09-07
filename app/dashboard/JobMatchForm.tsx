@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from 'react'
 import type { StoredResume } from './types'
-import type { JobMatch } from '@/lib/match/schema'
+import type { StoredJobMatch } from '@/lib/match/schema'
 import { fetchJson } from './fetch-json'
 
 export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
@@ -10,7 +10,7 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
   const [jobDescription, setJobDescription] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [error, setError] = useState<string | null>(null)
-  const [result, setResult] = useState<JobMatch | null>(null)
+  const [matches, setMatches] = useState<StoredJobMatch[]>([])
 
   // Pins the selection to a specific resume once one exists, instead of
   // re-deriving "resumes[0]" on every render — the latter silently swapped
@@ -26,15 +26,47 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
 
   const resumeId = selectedId ?? ''
 
+  // Loads this resume's match history whenever the selection changes —
+  // matches are stored server-side now (see supabase/migrations), so
+  // switching resumes should show *that* resume's past runs, not carry
+  // over whatever the previous selection had on screen.
+  useEffect(() => {
+    if (!resumeId) {
+      setMatches([])
+      return
+    }
+
+    let cancelled = false
+    setMatches([])
+
+    fetchJson<StoredJobMatch[]>(`/api/resumes/${resumeId}/match`).then((response) => {
+      if (cancelled) return
+      if (response.ok) setMatches(response.data)
+      // A failed history load isn't worth its own error banner — Compare
+      // still works, it would just start from an empty list.
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [resumeId])
+
+  // A pasted bare URL (someone copied the address bar instead of the
+  // posting's text) would otherwise go straight to Gemini and come back
+  // with a confusing non-match — catch it client-side instead. Deliberately
+  // only matches when the *entire* field is one URL, since a real JD that
+  // happens to start with a link shouldn't be blocked.
+  const trimmedJobDescription = jobDescription.trim()
+  const looksLikeUrl = /^https?:\/\/\S+$/i.test(trimmedJobDescription)
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!resumeId || !jobDescription.trim()) return
+    if (!resumeId || !trimmedJobDescription || looksLikeUrl) return
 
     setStatus('loading')
     setError(null)
-    setResult(null)
 
-    const response = await fetchJson<JobMatch>(`/api/resumes/${resumeId}/match`, {
+    const response = await fetchJson<StoredJobMatch>(`/api/resumes/${resumeId}/match`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobDescription }),
@@ -46,7 +78,8 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
       return
     }
 
-    setResult(response.data)
+    setMatches((prev) => [response.data, ...prev])
+    setJobDescription('')
     setStatus('idle')
   }
 
@@ -70,10 +103,6 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
             value={resumeId}
             onChange={(event) => {
               setSelectedId(event.target.value)
-              // The result/error on screen describe the previous selection
-              // — carrying them over would misattribute a stale fit score
-              // (or error) to whichever resume is now picked.
-              setResult(null)
               setError(null)
             }}
             style={{
@@ -96,15 +125,20 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
 
         <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, fontWeight: 700, color: 'var(--rl-muted)' }}>
           Job description
+          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--rl-muted)' }}>
+            Copy the full posting from LinkedIn, Glassdoor, JobStreet — wherever you found it — and paste the text
+            below. We don&rsquo;t fetch links automatically, so a URL on its own won&rsquo;t work.
+          </span>
           <textarea
             value={jobDescription}
             onChange={(event) => setJobDescription(event.target.value)}
             required
             rows={6}
             placeholder="Paste the job description here…"
+            aria-invalid={looksLikeUrl || undefined}
             style={{
               borderRadius: 14,
-              border: '2.5px solid var(--rl-ink)',
+              border: `2.5px solid ${looksLikeUrl ? 'var(--rl-danger)' : 'var(--rl-ink)'}`,
               background: 'var(--rl-surface)',
               color: 'var(--rl-ink)',
               padding: '12px 16px',
@@ -113,6 +147,11 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
               resize: 'vertical',
             }}
           />
+          {looksLikeUrl && (
+            <span role="alert" style={{ fontSize: 12, fontWeight: 600, color: 'var(--rl-danger)' }}>
+              That looks like a link, not the job description — paste the posting&rsquo;s actual text instead.
+            </span>
+          )}
         </label>
 
         {error && (
@@ -121,57 +160,82 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
           </p>
         )}
 
-        <button type="submit" disabled={status === 'loading'} className="rl-btn rl-btn-primary" style={{ alignSelf: 'flex-start' }}>
+        <button
+          type="submit"
+          disabled={status === 'loading' || looksLikeUrl}
+          className="rl-btn rl-btn-primary"
+          style={{ alignSelf: 'flex-start' }}
+        >
           {status === 'loading' ? 'Comparing…' : 'Compare'}
         </button>
       </form>
 
-      {result && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderTop: '2px dashed oklch(22% 0.03 50 / 0.2)', paddingTop: 20 }}>
-          <div>
-            <span style={{ fontWeight: 700 }}>Fit score &mdash; </span>
-            <span className="rl-display" style={{ fontSize: 24, fontWeight: 700, color: 'var(--rl-blue)' }}>
-              {result.fitScore}
-            </span>
-            <span style={{ color: 'var(--rl-muted)' }}>/100</span>
-          </div>
-
-          <p style={{ margin: 0, fontSize: 14, color: 'var(--rl-muted)' }}>{result.summary}</p>
-
-          {result.strengths.length > 0 && (
-            <div>
-              <span style={{ fontWeight: 700 }}>Strengths</span>
-              <ul style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 14, color: 'var(--rl-muted)' }}>
-                {result.strengths.map((strength) => (
-                  <li key={strength}>{strength}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {result.gaps.length > 0 && (
-            <div>
-              <span style={{ fontWeight: 700 }}>Gaps</span>
-              <ul style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 14, color: 'var(--rl-muted)' }}>
-                {result.gaps.map((gap) => (
-                  <li key={gap}>{gap}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {result.recommendations.length > 0 && (
-            <div>
-              <span style={{ fontWeight: 700 }}>Recommendations</span>
-              <ul style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 14, color: 'var(--rl-muted)' }}>
-                {result.recommendations.map((recommendation) => (
-                  <li key={recommendation}>{recommendation}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+      {matches.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '2px dashed oklch(22% 0.03 50 / 0.2)', paddingTop: 20 }}>
+          <span className="rl-display" style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--rl-muted)' }}>
+            {matches.length === 1 ? 'Match result' : `Past matches (${matches.length})`}
+          </span>
+          {matches.map((match, index) => (
+            <JobMatchEntry key={match.id} match={match} defaultOpen={index === 0} />
+          ))}
         </div>
       )}
     </div>
+  )
+}
+
+function JobMatchEntry({ match, defaultOpen }: { match: StoredJobMatch; defaultOpen: boolean }) {
+  const snippet = match.jobDescription.length > 90 ? `${match.jobDescription.slice(0, 90)}…` : match.jobDescription
+
+  return (
+    <details open={defaultOpen} className="rl-card" style={{ padding: 16, boxShadow: 'none', borderWidth: 2 }}>
+      <summary style={{ cursor: 'pointer', display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+        <span className="rl-display" style={{ fontSize: 18, fontWeight: 700, color: 'var(--rl-blue)' }}>
+          {match.fitScore}
+          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--rl-muted)' }}>/100</span>
+        </span>
+        <span style={{ fontSize: 13, color: 'var(--rl-muted)', fontWeight: 500 }}>{snippet}</span>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--rl-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>
+          {new Date(match.createdAt).toLocaleDateString()}
+        </span>
+      </summary>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
+        <p style={{ margin: 0, fontSize: 14, color: 'var(--rl-muted)' }}>{match.summary}</p>
+
+        {match.strengths.length > 0 && (
+          <div>
+            <span style={{ fontWeight: 700 }}>Strengths</span>
+            <ul style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 14, color: 'var(--rl-muted)' }}>
+              {match.strengths.map((strength) => (
+                <li key={strength}>{strength}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {match.gaps.length > 0 && (
+          <div>
+            <span style={{ fontWeight: 700 }}>Gaps</span>
+            <ul style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 14, color: 'var(--rl-muted)' }}>
+              {match.gaps.map((gap) => (
+                <li key={gap}>{gap}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {match.recommendations.length > 0 && (
+          <div>
+            <span style={{ fontWeight: 700 }}>Recommendations</span>
+            <ul style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 14, color: 'var(--rl-muted)' }}>
+              {match.recommendations.map((recommendation) => (
+                <li key={recommendation}>{recommendation}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </details>
   )
 }
