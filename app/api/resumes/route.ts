@@ -3,7 +3,7 @@ import { getRequestUser } from '@/lib/supabase/route'
 import { getGeminiApiKey, getGeminiModel } from '@/lib/gemini/client'
 import { analyzeResume } from '@/lib/resume/analyze'
 import { extractResumeText, InvalidResumeFileError, CorruptResumeFileError } from '@/lib/resume/extract-text'
-import { isResumeUploadRateLimited } from '@/lib/resume/rate-limit'
+import { isRateLimited } from '@/lib/cloudflare/rate-limit'
 import { captureServerEvent } from '@/lib/posthog/server'
 import { runInBackground } from '@/lib/cloudflare/background'
 
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'You must be signed in to upload a resume.' }, { status: 401 })
   }
 
-  if (await isResumeUploadRateLimited(user.id)) {
+  if (await isRateLimited('RESUME_UPLOAD_RATE_LIMITER', user.id)) {
     return Response.json({ error: 'Too many uploads — please wait a moment and try again.' }, { status: 429 })
   }
 

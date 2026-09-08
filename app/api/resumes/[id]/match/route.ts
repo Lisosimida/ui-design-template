@@ -3,7 +3,7 @@ import { getRequestUser, invalidResumeIdResponse } from '@/lib/supabase/route'
 import { getGeminiApiKey, getGeminiModel } from '@/lib/gemini/client'
 import { matchResumeToJob } from '@/lib/match/analyze'
 import { jobMatchSchema, jobMatchRequestSchema, type StoredJobMatch } from '@/lib/match/schema'
-import { isJobMatchRateLimited } from '@/lib/match/rate-limit'
+import { isRateLimited } from '@/lib/cloudflare/rate-limit'
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return Response.json({ error: 'You must be signed in to match a resume.' }, { status: 401 })
   }
 
-  if (await isJobMatchRateLimited(user.id)) {
+  if (await isRateLimited('JOB_MATCH_RATE_LIMITER', user.id)) {
     return Response.json({ error: 'Too many requests — please wait a moment and try again.' }, { status: 429 })
   }
 

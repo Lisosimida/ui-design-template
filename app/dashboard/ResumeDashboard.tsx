@@ -8,6 +8,8 @@ import '@/styles/resume-lab.css'
 import type { StoredResume } from './types'
 import { fetchJson } from './fetch-json'
 import JobMatchForm from './JobMatchForm'
+import { TrashIcon } from './icons'
+import { ConfirmDialog } from './ConfirmDialog'
 
 // Owns the resume list as local state (seeded from the server's initial
 // fetch) rather than re-fetching via router.refresh() after every upload or
@@ -67,6 +69,7 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
   const [errorSource, setErrorSource] = useState<'upload' | 'delete' | null>(null)
   const [pendingFileName, setPendingFileName] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const errorKeyRef = useRef(0)
   const shouldReduceMotion = useReducedMotion()
 
@@ -120,8 +123,10 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
     disabled: status === 'loading',
   })
 
-  async function handleDelete(id: string) {
-    if (!window.confirm('Delete this resume? This cannot be undone.')) return
+  async function handleDelete() {
+    const id = confirmDeleteId
+    if (!id) return
+    setConfirmDeleteId(null)
 
     setDeletingId(id)
     setError(null)
@@ -389,13 +394,21 @@ export default function ResumeDashboard({ initialResumes }: { initialResumes: St
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
             {resumes.map((resume) => (
-              <ResumeResultCard key={resume.id} resume={resume} onDelete={handleDelete} isDeleting={deletingId === resume.id} />
+              <ResumeResultCard key={resume.id} resume={resume} onDelete={setConfirmDeleteId} isDeleting={deletingId === resume.id} />
             ))}
           </div>
         </div>
       )}
 
       <JobMatchForm resumes={resumes} />
+
+      <ConfirmDialog
+        open={confirmDeleteId !== null}
+        title="Delete this resume?"
+        message="This cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   )
 }
@@ -659,16 +672,6 @@ function FileIcon() {
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--rl-orange-ink)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
       <path d="M14 2v6h6" />
-    </svg>
-  )
-}
-
-function TrashIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 6h18" />
-      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
     </svg>
   )
 }

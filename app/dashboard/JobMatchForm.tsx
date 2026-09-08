@@ -4,6 +4,8 @@ import { useEffect, useState, type FormEvent } from 'react'
 import type { StoredResume } from './types'
 import type { StoredJobMatch } from '@/lib/match/schema'
 import { fetchJson } from './fetch-json'
+import { TrashIcon } from './icons'
+import { ConfirmDialog } from './ConfirmDialog'
 
 export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -12,6 +14,7 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
   const [error, setError] = useState<string | null>(null)
   const [matches, setMatches] = useState<StoredJobMatch[]>([])
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteMatchId, setConfirmDeleteMatchId] = useState<string | null>(null)
 
   // Pins the selection to a specific resume once one exists, instead of
   // re-deriving "resumes[0]" on every render — the latter silently swapped
@@ -84,13 +87,19 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
     setStatus('idle')
   }
 
-  async function handleDeleteMatch(matchId: string) {
+  function requestDeleteMatch(matchId: string) {
     // Guards against a double-click firing a second DELETE while the first
     // is still in flight — without it, the first request succeeds and
     // removes the match, then the second finds no matching row and 404s,
     // surfacing a confusing error banner right after a delete that worked.
     if (!resumeId || deletingId) return
-    if (!window.confirm('Delete this match from your history? This cannot be undone.')) return
+    setConfirmDeleteMatchId(matchId)
+  }
+
+  async function handleDeleteMatch() {
+    const matchId = confirmDeleteMatchId
+    if (!matchId) return
+    setConfirmDeleteMatchId(null)
 
     setDeletingId(matchId)
     const response = await fetchJson(`/api/resumes/${resumeId}/match/${matchId}`, { method: 'DELETE' })
@@ -201,12 +210,20 @@ export default function JobMatchForm({ resumes }: { resumes: StoredResume[] }) {
               key={match.id}
               match={match}
               defaultOpen={index === 0}
-              onDelete={handleDeleteMatch}
+              onDelete={requestDeleteMatch}
               isDeleting={deletingId === match.id}
             />
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDeleteMatchId !== null}
+        title="Delete this match?"
+        message="This cannot be undone."
+        onConfirm={handleDeleteMatch}
+        onCancel={() => setConfirmDeleteMatchId(null)}
+      />
     </div>
   )
 }
@@ -291,15 +308,5 @@ function JobMatchEntry({
         )}
       </div>
     </details>
-  )
-}
-
-function TrashIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 6h18" />
-      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-    </svg>
   )
 }
